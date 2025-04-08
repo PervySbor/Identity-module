@@ -1,0 +1,1 @@
+ENV CONTAINER_NAME="identity-module-container#1"
