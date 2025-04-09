@@ -10,16 +10,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogManager {
-    static final Logger logger = Logger.getLogger("myLogger");
+    final Logger logger = Logger.getLogger("myLogger");
 
-    static {
+     {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         logger.addHandler(handler);
         logger.setLevel(Level.ALL);
     }
 
-    public static String logException(Exception exception, Level level){
+    public String logException(JsonManager jsonManager, Exception exception, Level level){
         String jsonLogMessage = "";
         StackTraceElement[] elements = exception.getStackTrace();
 
@@ -34,7 +34,7 @@ public class LogManager {
         }
 
         try {
-            jsonLogMessage = JsonManager.serialize(logMessage);
+            jsonLogMessage = jsonManager.serialize(logMessage);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e){
             logger.log(Level.SEVERE, "Failed to serialize LogMessage: ", e);
         }

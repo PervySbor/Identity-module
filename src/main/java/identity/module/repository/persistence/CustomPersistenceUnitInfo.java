@@ -75,11 +75,14 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
     @Override
     public Properties getProperties() {
         Properties properties = new Properties();
+        String DB_URL = System.getenv("DB_URL");
+        String DB_LOGIN = System.getenv("DB_LOGIN");
+        String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
         properties.put("hibernate.connection.driver_class", "org.postgresql.Driver");
-        properties.put("hibernate.connection.url", "jdbc:postgresql://localhost:5432/demo");
-        properties.put("hibernate.connection.username", "postgres");
-        properties.put("hibernate.connection.password", "root");
+        properties.put("hibernate.connection.url", DB_URL);
+        properties.put("hibernate.connection.username", DB_LOGIN);
+        properties.put("hibernate.connection.password", DB_PASSWORD);
 
         properties.put("hibernate.connection.pool_size", "10");
 
