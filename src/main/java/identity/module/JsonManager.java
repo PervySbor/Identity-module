@@ -37,7 +37,7 @@ public class JsonManager {
         return mapper.writeValueAsString(obj);
     }
 
-    protected String getStringValue(String json, String property)
+    public String getStringValue(String json, String property)
             throws JsonProcessingException, FailedToReadJsonValueException {
         String result;
         JsonNode root = mapper.readTree(json);

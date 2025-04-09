@@ -6,7 +6,8 @@ module identity.module {
 
     opens identity.module to identity.module.test;
     opens identity.module.repository to identity.module.test;
-    opens identity.module.repository.entities to identity.module.test;
+    opens identity.module.repository.entities to identity.module.test, org.hibernate.orm.core;
     opens identity.module.enums to identity.module.test;
     exports identity.module.models to com.fasterxml.jackson.databind;
+    opens identity.module.config to identity.module.test;
 }

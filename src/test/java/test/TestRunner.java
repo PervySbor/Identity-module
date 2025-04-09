@@ -8,7 +8,7 @@ import java.util.List;
 
 public class TestRunner {
     public static void main(String[] args) {
-        Result result = JUnitCore.runClasses(JsonManagerTest.class, LogManagerTest.class);
+        Result result = JUnitCore.runClasses(JsonManagerTest.class, LogManagerTest.class, ConfigReaderTest.class);
         List<Failure> fails = result.getFailures();
         for(Failure fail : fails){
             System.out.println(fail.getMessage());

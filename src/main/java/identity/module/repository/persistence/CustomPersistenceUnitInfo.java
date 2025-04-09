@@ -1,6 +1,8 @@
 package identity.module.repository.persistence;
 
-import identity.module.ConfigReader;
+import identity.module.JsonManager;
+import identity.module.config.ConfigService;
+import identity.module.exceptions.FatalException;
 import jakarta.persistence.SharedCacheMode;
 import jakarta.persistence.ValidationMode;
 import jakarta.persistence.spi.ClassTransformer;
@@ -12,13 +14,15 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
+//throws error & fails in case it can't read config.json
+//(but sends logs)
 public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
 
-    private final ConfigReader configReader;
+    private final ConfigService configService;
 
-    public CustomPersistenceUnitInfo(ConfigReader configReader){
+    public CustomPersistenceUnitInfo(ConfigService configService){
         super();
-        this.configReader = configReader;
+        this.configService = configService;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
 
     @Override
     public List<String> getManagedClassNames() {
-        return List.of();
+        return List.of("identity.module.repository.entities.User", "identity.module.repository.entities.Session", "identity.module.repository.entities..Subscription");
     }
 
     @Override
@@ -84,9 +88,9 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
     @Override
     public Properties getProperties() {
         Properties properties = new Properties();
-        String DB_URL = System.getenv("DB_URL");
-        String DB_LOGIN = System.getenv("DB_LOGIN");
-        String DB_PASSWORD = System.getenv("DB_PASSWORD");
+        String DB_URL = configService.getStringValue("DB_URL");
+        String DB_LOGIN = configService.getStringValue("DB_LOGIN");
+        String DB_PASSWORD = configService.getStringValue("DB_PASSWORD");
 
         System.out.println(DB_URL);
         System.out.println(DB_LOGIN);

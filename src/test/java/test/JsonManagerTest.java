@@ -17,6 +17,7 @@ public class JsonManagerTest {
         List<String> headers = List.of("user", "password");
         String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\"}";
         String expectedResult = "[usr1, passwd]";
+
         Class<?> jsonManagerClass = Class.forName("identity.module.JsonManager");
         Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
         Object jsonManagerInstance = jsonManagerConstructor.newInstance();

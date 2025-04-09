@@ -21,7 +21,7 @@ public class User {
     @Column(name="password_hash")
     private String passwordHash;
 
-    @OneToOne
+    //@OneToOne
     //as Role is deprecated
     //@JoinColumn(name="role_id") // ???
     @Enumerated(STRING)
