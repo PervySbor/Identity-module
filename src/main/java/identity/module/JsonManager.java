@@ -1,8 +1,10 @@
 package identity.module;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import identity.module.exceptions.FailedToReadJsonValueException;
 import identity.module.exceptions.ParsingUserRequestException;
 
 import java.io.IOException;
@@ -33,5 +35,21 @@ public class JsonManager {
     String serialize(Object obj)
         throws com.fasterxml.jackson.core.JsonProcessingException{
         return mapper.writeValueAsString(obj);
+    }
+
+    protected String getStringValue(String json, String property)
+            throws JsonProcessingException, FailedToReadJsonValueException {
+        String result;
+        JsonNode root = mapper.readTree(json);
+
+        JsonNode field = root.at("/" + property);
+        if(field.isNull()){
+            throw new FailedToReadJsonValueException("no fields with such name encountered in config file");
+        }
+        result = field.asText();
+        if(result.isEmpty()){
+            throw new FailedToReadJsonValueException("field " + property + " is not a String");
+        }
+        return result;
     }
 }

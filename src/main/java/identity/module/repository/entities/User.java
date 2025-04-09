@@ -1,8 +1,11 @@
 package identity.module.repository.entities;
 
+import identity.module.enums.Roles;
 import jakarta.persistence.*;
 
 import java.util.UUID;
+
+import static jakarta.persistence.EnumType.STRING;
 
 @Entity
 @Table(name="users")
@@ -19,18 +22,23 @@ public class User {
     private String passwordHash;
 
     @OneToOne
-    @JoinColumn(name="role_id") // ???
-    private Role role;
+    //as Role is deprecated
+    //@JoinColumn(name="role_id") // ???
+    @Enumerated(STRING)
+    private Roles role;
+
 
     public User() {}
 
-    public User(String login, String passwordHash, Role role){
+
+    //assumed usage: creating new user (registration)
+    public User(String login, String passwordHash){
         this.login = login;
         this.passwordHash = passwordHash;
-        this.role = role;
+        this.role = Roles.NEW_USER;
     }
 
-    public Role getRole() {
+    public Roles getRole() {
         return role;
     }
 
@@ -46,7 +54,7 @@ public class User {
         return passwordHash;
     }
 
-    public void setRole(Role role) {
+    public void setRole(Roles role) {
         this.role = role;
     }
 

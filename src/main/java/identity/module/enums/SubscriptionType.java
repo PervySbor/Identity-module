@@ -2,7 +2,7 @@ package identity.module.enums;
 
 public enum SubscriptionType {
 
-    TRIAL(7),
+    TRIAL(7), //no checks here
     WEEK(7),
     MONTH(30),
     YEAR(365),

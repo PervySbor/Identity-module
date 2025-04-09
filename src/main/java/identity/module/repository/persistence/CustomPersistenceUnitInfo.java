@@ -1,5 +1,6 @@
 package identity.module.repository.persistence;
 
+import identity.module.ConfigReader;
 import jakarta.persistence.SharedCacheMode;
 import jakarta.persistence.ValidationMode;
 import jakarta.persistence.spi.ClassTransformer;
@@ -12,6 +13,14 @@ import java.util.List;
 import java.util.Properties;
 
 public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
+
+    private final ConfigReader configReader;
+
+    public CustomPersistenceUnitInfo(ConfigReader configReader){
+        super();
+        this.configReader = configReader;
+    }
+
     @Override
     public String getPersistenceUnitName() {
         return "hibernate.postgres";
@@ -78,6 +87,10 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
         String DB_URL = System.getenv("DB_URL");
         String DB_LOGIN = System.getenv("DB_LOGIN");
         String DB_PASSWORD = System.getenv("DB_PASSWORD");
+
+        System.out.println(DB_URL);
+        System.out.println(DB_LOGIN);
+        System.out.println(DB_PASSWORD);
 
         properties.put("hibernate.connection.driver_class", "org.postgresql.Driver");
         properties.put("hibernate.connection.url", DB_URL);

@@ -1,0 +1,6 @@
+{
+  "CONTAINER_NAME" :  "identity-module-container#1",
+  "DB_URL" : "jdbc:postgresql://localhost:5432/identity",
+  "DB_LOGIN" : "postgres",
+  "DB_PASSWORD" : "root"
+}

@@ -1,16 +1,22 @@
 package identity.module.repository.entities;
 
+import identity.module.enums.Roles;
+import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Enumerated;
 
-@Entity
-@Table(name="roles")
+import static jakarta.persistence.EnumType.STRING;
+
+@Deprecated
+//@Entity
+//@Table(name="roles")
 public class Role {
 
     @Column(name="role_name")
-    private String roleName;
+    @Enumerated(STRING)
+    private Roles role;
 
     @Id
     @Column(name="role_id")
@@ -28,11 +34,4 @@ public class Role {
         this.roleId = roleId;
     }
 
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
 }
