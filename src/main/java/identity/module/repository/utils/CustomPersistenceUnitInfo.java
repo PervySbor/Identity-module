@@ -1,5 +1,7 @@
 package identity.module.repository.utils;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import identity.module.utils.config.ConfigReader;
 import identity.module.utils.config.ConfigService;
 import jakarta.persistence.SharedCacheMode;
@@ -9,6 +11,7 @@ import jakarta.persistence.spi.PersistenceUnitInfo;
 import jakarta.persistence.spi.PersistenceUnitTransactionType;
 
 import javax.sql.DataSource;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
@@ -16,13 +19,6 @@ import java.util.Properties;
 //throws error & fails in case it can't read config.json
 //(but sends logs)
 public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
-
-    private final ConfigService configService;
-
-    public CustomPersistenceUnitInfo(ConfigService configService){
-        super();
-        this.configService = configService;
-    }
 
     @Override
     public String getPersistenceUnitName() {
@@ -41,7 +37,20 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
 
     @Override
     public DataSource getJtaDataSource() {
-        return null;
+        Properties props = new Properties();
+
+        String DB_URL = ConfigReader.getStringValue("DB_URL");
+        String DB_LOGIN = ConfigReader.getStringValue("DB_LOGIN");
+        String DB_PASSWORD = ConfigReader.getStringValue("DB_PASSWORD");
+
+        props.setProperty("jdbcUrl", DB_URL);
+        props.setProperty("dataSource.user", DB_LOGIN);
+        props.setProperty("dataSource.password", DB_PASSWORD);
+        props.put("dataSource.logWriter", new PrintWriter(System.out));
+
+        HikariConfig config = new HikariConfig(props);
+        HikariDataSource dataSource = new HikariDataSource(config);
+        return dataSource;
     }
 
     @Override
@@ -86,23 +95,23 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
 
     @Override
     public Properties getProperties() {
-        Properties properties = new Properties();
-        String DB_URL = ConfigReader.getStringValue("DB_URL");
-        String DB_LOGIN = ConfigReader.getStringValue("DB_LOGIN");
-        String DB_PASSWORD = ConfigReader.getStringValue("DB_PASSWORD");
-
-        System.out.println(DB_URL);
-        System.out.println(DB_LOGIN);
-        System.out.println(DB_PASSWORD);
-
-        properties.put("hibernate.connection.driver_class", "org.postgresql.Driver");
-        properties.put("hibernate.connection.url", DB_URL);
-        properties.put("hibernate.connection.username", DB_LOGIN);
-        properties.put("hibernate.connection.password", DB_PASSWORD);
-
-        properties.put("hibernate.connection.pool_size", "10");
-
-        return properties;
+//        Properties properties = new Properties();
+//        String DB_URL = ConfigReader.getStringValue("DB_URL");
+//        String DB_LOGIN = ConfigReader.getStringValue("DB_LOGIN");
+//        String DB_PASSWORD = ConfigReader.getStringValue("DB_PASSWORD");
+//
+//        System.out.println(DB_URL);
+//        System.out.println(DB_LOGIN);
+//        System.out.println(DB_PASSWORD);
+//
+//        properties.put("hibernate.connection.driver_class", "org.postgresql.Driver");
+//        properties.put("hibernate.connection.url", DB_URL);
+//        properties.put("hibernate.connection.username", DB_LOGIN);
+//        properties.put("hibernate.connection.password", DB_PASSWORD);
+//        properties.put("hibernate.show_sql", "true");
+//
+//        return properties;
+        return null;
     }
 
     @Override

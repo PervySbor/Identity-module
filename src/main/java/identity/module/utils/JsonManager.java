@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import identity.module.exceptions.FailedToReadJsonValueException;
 import identity.module.exceptions.ParsingUserRequestException;
+import identity.module.models.ErrorResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.List;
 public class JsonManager {
     static final ObjectMapper mapper = new ObjectMapper();
 
-    protected static List<String> unwrapPairs(List<String> headers, String jsonString)
+    public static List<String> unwrapPairs(List<String> headers, String jsonString)
             throws ParsingUserRequestException {
         JsonNode node;
         try {
@@ -29,7 +30,17 @@ public class JsonManager {
         for(String header : headers){
             result.add(node.get(header).asText(""));
         }
+        if (result.size() != headers.size()){
+            throw new ParsingUserRequestException("Failed to parse user's request body : some values are missing");
+        }
         return result;
+    }
+
+    public static String getErrorMessage(int statusCode, String error, String message)
+            throws JsonProcessingException {
+        ErrorResponse errorResponse = new ErrorResponse(statusCode, error, message);
+
+        return mapper.writeValueAsString(errorResponse);
     }
 
     protected static String serialize(Object obj)

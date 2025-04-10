@@ -10,10 +10,14 @@ import java.util.Map;
 //using HikariCP under the hood
 
 public class JpaUtils {
-//    private static final EntityManagerFactory emf;
-//    static {
-//        Map<String,String> props = new HashMap<>();
-//        props.put("hibernate.show_sql", "true");
-//        EntityManagerFactory emf =  new HibernatePersistenceProvider().createContainerEntityManagerFactory(new CustomPersistenceUnitInfo(configService), props);
-//    }
+    private static final EntityManagerFactory emf;
+    static {
+        Map<String,String> props = new HashMap<>();
+        //props.put("hibernate.show_sql", "true");
+        emf =  new HibernatePersistenceProvider().createContainerEntityManagerFactory(new CustomPersistenceUnitInfo(), props);
+    }
+
+    public static EntityManagerFactory getEntityManagerFactory(){
+        return emf;
+    }
 }

@@ -1,9 +1,6 @@
 package identity.module.repository.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -14,13 +11,14 @@ public class Session {
 
     @Id
     @Column(name="session_id")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID sessionId;
 
     @Column(name="user_id")
     private UUID userId;
 
     @Column(name="refresh_token_hash")
-    private String refreshTokenHash;
+    private String refreshTokenHash; //created new for each new session
 
     @Column(name="user_ip")
     private String userIp;
@@ -32,6 +30,12 @@ public class Session {
     private Timestamp expiresAt;
 
     public Session() {}
+
+    public Session(UUID userId, String userIp){
+        this.userIp = userIp;
+        this.userId = userId;
+
+    }
 
     public Timestamp getCreatedAt() {
         return createdAt;

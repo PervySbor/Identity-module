@@ -1,7 +1,7 @@
 module identity.module {
     requires com.fasterxml.jackson.databind;
     requires jakarta.persistence;
-    requires java.sql;
+    requires com.zaxxer.hikari;
     requires org.hibernate.orm.core;
 
     opens identity.module to identity.module.test;

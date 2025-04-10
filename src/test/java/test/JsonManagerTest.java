@@ -9,6 +9,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 public class JsonManagerTest {
 
     @Test
@@ -26,6 +28,36 @@ public class JsonManagerTest {
 
         String result = unwrapPair.invoke(null, headers, jsonString).toString();
 
-        Assert.assertEquals(expectedResult, result);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void testGetStringValue() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\"}";
+        String searchedProperty = "password";
+        String expectedResult = "passwd";
+
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        Method getStringValue = jsonManagerClass.getDeclaredMethod("getStringValue", String.class, String.class);
+        getStringValue.setAccessible(true);
+
+        String result = (String) getStringValue.invoke(null, jsonString, searchedProperty);
+
+        assertEquals(expectedResult, result);
+    }
+    @Test
+    public void testGetErrorMessage() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        int statusCode = 409;
+        String error = "Conflict";
+        String message = "Login is already taken";
+        String expectedResult = "{\"status\":409,\"error\":\"Conflict\",\"message\":\"Login is already taken\"}";
+
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        Method getErrorMessage = jsonManagerClass.getDeclaredMethod("getErrorMessage", int.class, String.class, String.class);
+        getErrorMessage.setAccessible(true);
+
+        String result = (String) getErrorMessage.invoke(null, statusCode, error, message);
+
+        assertEquals(expectedResult, result);
     }
 }

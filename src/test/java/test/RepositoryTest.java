@@ -15,24 +15,12 @@ public class RepositoryTest {
     public void testIsLoginTaken_newLogin()
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
-        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
-        Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
-        Object jsonManagerInstance = jsonManagerConstructor.newInstance();
-
-        Class<?> logManagerClass = Class.forName("identity.module.utils.LogManager");
-        Constructor<?> logManagerConstructor = logManagerClass.getConstructor();
-        Object logManagerInstance = logManagerConstructor.newInstance();
-
-        Class<?> ConfigServiceClass = Class.forName("identity.module.utils.config.ConfigService");
-        Constructor<?> ConfceCigServionstructor = ConfigServiceClass.getConstructor(logManagerClass, jsonManagerClass);
-        Object ConfigServiceInstance = ConfceCigServionstructor.newInstance(logManagerInstance, jsonManagerInstance);
-
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
-        Constructor<?> repositoryConstructor = repositoryClass.getConstructor(ConfigServiceClass);
+        Constructor<?> repositoryConstructor = repositoryClass.getConstructor();
         Method isLoginTaken = repositoryClass.getMethod("isLoginTaken", String.class);
-        Object repositoryInstance = repositoryConstructor.newInstance(ConfigServiceInstance);
+        Object repositoryInstance = repositoryConstructor.newInstance();
 
         boolean result = (boolean) isLoginTaken.invoke(repositoryInstance, "new_login");
 
