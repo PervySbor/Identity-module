@@ -1,4 +1,4 @@
-package identity.module;
+package identity.module.utils;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JsonManager {
-    final ObjectMapper mapper = new ObjectMapper();
+    static final ObjectMapper mapper = new ObjectMapper();
 
-    List<String> unwrapPairs(List<String> headers, String jsonString)
+    protected static List<String> unwrapPairs(List<String> headers, String jsonString)
             throws ParsingUserRequestException {
         JsonNode node;
         try {
@@ -32,12 +32,12 @@ public class JsonManager {
         return result;
     }
 
-    String serialize(Object obj)
+    protected static String serialize(Object obj)
         throws com.fasterxml.jackson.core.JsonProcessingException{
         return mapper.writeValueAsString(obj);
     }
 
-    public String getStringValue(String json, String property)
+    public static String getStringValue(String json, String property)
             throws JsonProcessingException, FailedToReadJsonValueException {
         String result;
         JsonNode root = mapper.readTree(json);

@@ -1,25 +1,23 @@
-package identity.module;
+package identity.module.utils;
 
 import identity.module.models.LogMessage;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogManager {
-    final Logger logger = Logger.getLogger("myLogger");
+    static final Logger logger = Logger.getLogger("myLogger");
 
-     {
+     static {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         logger.addHandler(handler);
         logger.setLevel(Level.ALL);
     }
 
-    public String logException(JsonManager jsonManager, Exception exception, Level level){
+    public static String logException(Exception exception, Level level){
         String jsonLogMessage = "";
         StackTraceElement[] elements = exception.getStackTrace();
 
@@ -34,7 +32,7 @@ public class LogManager {
         }
 
         try {
-            jsonLogMessage = jsonManager.serialize(logMessage);
+            jsonLogMessage = JsonManager.serialize(logMessage);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e){
             logger.log(Level.SEVERE, "Failed to serialize LogMessage: ", e);
         }

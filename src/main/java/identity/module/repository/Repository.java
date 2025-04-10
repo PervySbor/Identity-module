@@ -1,18 +1,14 @@
 package identity.module.repository;
 
 
-import identity.module.config.ConfigService;
-import identity.module.repository.entities.User;
-import identity.module.repository.persistence.CustomPersistenceUnitInfo;
+import identity.module.utils.config.ConfigService;
+import identity.module.repository.utils.CustomPersistenceUnitInfo;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 
-import identity.module.repository.entities.*;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class Repository {
 

@@ -18,13 +18,13 @@ public class JsonManagerTest {
         String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\"}";
         String expectedResult = "[usr1, passwd]";
 
-        Class<?> jsonManagerClass = Class.forName("identity.module.JsonManager");
-        Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
-        Object jsonManagerInstance = jsonManagerConstructor.newInstance();
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        //Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
+        //Object jsonManagerInstance = jsonManagerConstructor.newInstance();
         Method unwrapPair = jsonManagerClass.getDeclaredMethod("unwrapPairs", List.class, String.class);
         unwrapPair.setAccessible(true);
 
-        String result = unwrapPair.invoke(jsonManagerInstance, headers, jsonString).toString();
+        String result = unwrapPair.invoke(null, headers, jsonString).toString();
 
         Assert.assertEquals(expectedResult, result);
     }

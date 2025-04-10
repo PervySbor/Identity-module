@@ -17,16 +17,16 @@ public class LogManagerTest {
     public void testCorrectInheritingExceptionLogging()
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
         Level level = Level.CONFIG;
-        Class<?> jsonManagerClass = Class.forName("identity.module.JsonManager");
-        Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
-        Object jsonManagerInstance = jsonManagerConstructor.newInstance();
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        //Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
+        //Object jsonManagerInstance = jsonManagerConstructor.newInstance();
         //var castedJsonManagerInstance = jsonManagerClass.cast(jsonManagerInstance);
 
-        Class<?> logManagerClass = Class.forName("identity.module.LogManager");
-        Constructor<?> logManagerConstructor = logManagerClass.getConstructor();
-        var logManagerInstance = logManagerConstructor.newInstance();
+        Class<?> logManagerClass = Class.forName("identity.module.utils.LogManager");
+        //Constructor<?> logManagerConstructor = logManagerClass.getConstructor();
+        //var logManagerInstance = logManagerConstructor.newInstance();
 
-        Method logException = logManagerClass.getDeclaredMethod("logException", jsonManagerClass,  Exception.class, Level.class);
+        Method logException = logManagerClass.getDeclaredMethod("logException", Exception.class, Level.class);
         logException.setAccessible(true);
         try {
             try {
@@ -37,7 +37,7 @@ public class LogManagerTest {
                 throw runtimeEx;
             }
         } catch (RuntimeException e) {
-            String result = (String) logException.invoke(logManagerInstance, jsonManagerInstance, e, level);
+            String result = (String) logException.invoke(null, e, level);
             System.out.println(result);
         }
     }
@@ -48,20 +48,20 @@ public class LogManagerTest {
         System.out.println("Started single test");
         Level level = Level.CONFIG;
 
-        Class<?> jsonManagerClass = Class.forName("identity.module.JsonManager");
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
         Constructor<?> jsonManagerConstructor = jsonManagerClass.getConstructor();
         Object jsonManagerInstance = jsonManagerConstructor.newInstance();
 
-        Class<?> logManagerClass = Class.forName("identity.module.LogManager");
+        Class<?> logManagerClass = Class.forName("identity.module.utils.LogManager");
         Constructor<?> logManagerConstructor = logManagerClass.getConstructor();
         var logManagerInstance = logManagerConstructor.newInstance();
 
-        Method logException = logManagerClass.getDeclaredMethod("logException", jsonManagerClass, Exception.class, Level.class);
+        Method logException = logManagerClass.getDeclaredMethod("logException", Exception.class, Level.class);
         logException.setAccessible(true);
         try {
              throw new IOException("my IO exception");
         } catch (IOException e) {
-            String result = (String) logException.invoke(logManagerInstance, jsonManagerInstance, e, level);
+            String result = (String) logException.invoke(logManagerInstance, e, level);
             System.out.println(result);
         }
     }

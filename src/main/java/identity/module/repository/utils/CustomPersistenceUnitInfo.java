@@ -1,8 +1,7 @@
-package identity.module.repository.persistence;
+package identity.module.repository.utils;
 
-import identity.module.JsonManager;
-import identity.module.config.ConfigService;
-import identity.module.exceptions.FatalException;
+import identity.module.utils.config.ConfigReader;
+import identity.module.utils.config.ConfigService;
 import jakarta.persistence.SharedCacheMode;
 import jakarta.persistence.ValidationMode;
 import jakarta.persistence.spi.ClassTransformer;
@@ -88,9 +87,9 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
     @Override
     public Properties getProperties() {
         Properties properties = new Properties();
-        String DB_URL = configService.getStringValue("DB_URL");
-        String DB_LOGIN = configService.getStringValue("DB_LOGIN");
-        String DB_PASSWORD = configService.getStringValue("DB_PASSWORD");
+        String DB_URL = ConfigReader.getStringValue("DB_URL");
+        String DB_LOGIN = ConfigReader.getStringValue("DB_LOGIN");
+        String DB_PASSWORD = ConfigReader.getStringValue("DB_PASSWORD");
 
         System.out.println(DB_URL);
         System.out.println(DB_LOGIN);
