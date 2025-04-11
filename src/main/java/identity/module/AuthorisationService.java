@@ -1,14 +1,13 @@
 package identity.module;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import identity.module.exceptions.FailedToEncryptException;
+import identity.module.exceptions.FailedToHashException;
 import identity.module.exceptions.NonUniqueUserException;
 import identity.module.exceptions.ParsingUserRequestException;
 import identity.module.repository.Repository;
 import identity.module.repository.entities.User;
 import identity.module.utils.JsonManager;
 import identity.module.utils.LogManager;
-import identity.module.utils.SecurityManager;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -54,8 +53,8 @@ public class AuthorisationService {
         }
         else {
             try {
-                hashedPassword = SecurityManager.encryptPassword(password);
-            } catch (FailedToEncryptException e){
+                hashedPassword = identity.module.utils.SecurityManager.hashString(password);
+            } catch (FailedToHashException e) {
                 LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
                 return "";
             }

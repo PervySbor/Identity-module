@@ -61,3 +61,4 @@ public class JsonManagerTest {
         assertEquals(expectedResult, result);
     }
 }
+Возвращаем Response  (.setStatus(…), + в Body -  Json, полученный из createErrorMessage(…))

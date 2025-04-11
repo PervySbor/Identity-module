@@ -32,10 +32,10 @@ public class User {
 
 
     //assumed usage: creating new user (registration)
-    public User(String login, String passwordHash){
+    public User(String login, String passwordHash, Roles role){
         this.login = login;
         this.passwordHash = passwordHash;
-        this.role = Roles.NEW_USER;
+        this.role = role;
     }
 
     public Roles getRole() {

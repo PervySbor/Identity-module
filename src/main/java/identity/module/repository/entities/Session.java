@@ -1,8 +1,11 @@
 package identity.module.repository.entities;
 
+import identity.module.SessionManager;
+import identity.module.utils.config.ConfigReader;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.UUID;
 
 @Entity
@@ -34,7 +37,13 @@ public class Session {
     public Session(UUID userId, String userIp){
         this.userIp = userIp;
         this.userId = userId;
-
+        this.createdAt = new Timestamp(System.currentTimeMillis());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(this.createdAt);
+        int SESSION_LENGTH = Integer.parseInt(ConfigReader.getStringValue("SESSION_LENGTH"));
+        cal.add(Calendar.DAY_OF_MONTH, SESSION_LENGTH);
+        this.expiresAt = new Timestamp(cal.getTimeInMillis());
+        //this.refreshTokenHash = SessionManager.generateNewRefreshToken();
     }
 
     public Timestamp getCreatedAt() {

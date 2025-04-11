@@ -3,5 +3,6 @@
   "DB_URL" : "jdbc:postgresql://localhost:5432/identity",
   "DB_LOGIN" : "postgres",
   "DB_PASSWORD" : "root",
-  "ENCRYPTION_PASSWORD" : "password"
+  "ENCRYPTION_PASSWORD" : "password",
+  "SESSION_LENGTH" : "7"
 }

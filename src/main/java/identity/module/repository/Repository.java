@@ -2,6 +2,7 @@ package identity.module.repository;
 
 
 import identity.module.exceptions.NonUniqueUserException;
+import identity.module.repository.entities.Session;
 import identity.module.repository.entities.User;
 import identity.module.repository.utils.JpaUtils;
 import identity.module.utils.LogManager;
@@ -22,8 +23,6 @@ public class Repository {
         throws NonUniqueUserException{
         boolean isLoginTaken = false;
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-
-        em.getTransaction().begin();
 
         TypedQuery<Long> query = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.login = :login", Long.class);
         query.setParameter("login", login);
@@ -46,7 +45,24 @@ public class Repository {
         };
     }
 
-    public void registerNewUser(User user, UUID userId, String userIp){
+    //no need to check old sessions
+    public void registerNewUser(User user, String userIp){
+        EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
+        em.getTransaction().begin();
 
+        em.persist(user);
+        Session session = new Session(user.getUserId(), userIp);
+        em.persist(session);
+
+        em.getTransaction().commit();
+        em.close();
+    }
+
+    public void deleteUser(User user){
+        EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
+        em.getTransaction().begin();
+
+        em.getTransaction().commit();
+        em.close();
     }
 }
