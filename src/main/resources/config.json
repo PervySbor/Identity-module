@@ -4,5 +4,6 @@
   "DB_LOGIN" : "postgres",
   "DB_PASSWORD" : "root",
   "ENCRYPTION_PASSWORD" : "password",
-  "SESSION_LENGTH" : "7"
+  "SESSION_LENGTH" : "7",
+  "MAX_SESSIONS_AMOUNT" : "5"
 }
