@@ -4,13 +4,16 @@ package identity.module.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import identity.module.enums.Roles;
 import identity.module.exceptions.FailedToReadJsonValueException;
 import identity.module.exceptions.ParsingUserRequestException;
 import identity.module.models.ErrorResponse;
+import identity.module.models.JwtPayload;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class JsonManager {
     static final ObjectMapper mapper = new ObjectMapper();
@@ -41,6 +44,12 @@ public class JsonManager {
         ErrorResponse errorResponse = new ErrorResponse(statusCode, error, message);
 
         return mapper.writeValueAsString(errorResponse);
+    }
+
+    public static String getJWTPayload(Roles role, UUID session_id)
+            throws JsonProcessingException {
+        JwtPayload payload = new JwtPayload(role, session_id);
+        return mapper.writeValueAsString(payload);
     }
 
     protected static String serialize(Object obj)

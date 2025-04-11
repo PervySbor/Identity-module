@@ -6,12 +6,16 @@ import identity.module.repository.entities.User;
 import identity.module.repository.utils.JpaUtils;
 import jakarta.persistence.EntityManager;
 
+import java.util.UUID;
+
 public class SessionDao implements DAO<Session> {
     @Override
-    public void save(Session obj) {
+    public UUID save(Session obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
         em.persist(obj);
+        UUID sessionId = obj.getSessionId();
         em.close();
+        return sessionId;
     }
 
     @Override

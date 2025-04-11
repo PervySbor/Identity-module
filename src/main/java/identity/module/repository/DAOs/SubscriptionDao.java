@@ -6,12 +6,16 @@ import identity.module.repository.entities.Subscription;
 import identity.module.repository.utils.JpaUtils;
 import jakarta.persistence.EntityManager;
 
+import java.util.UUID;
+
 public class SubscriptionDao implements DAO<Subscription> {
     @Override
-    public void save(Subscription obj) {
+    public UUID save(Subscription obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
         em.persist(obj);
+        UUID userId = obj.getUser().getUserId(); //temporary?
         em.close();
+        return userId;
     }
 
     @Override

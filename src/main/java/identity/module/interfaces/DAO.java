@@ -7,10 +7,11 @@ import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public interface DAO<T> {
 
-    void save(T obj);
+    UUID save(T obj);
 
     void delete(T obj);
 

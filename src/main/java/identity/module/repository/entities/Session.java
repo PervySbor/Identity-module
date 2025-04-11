@@ -34,16 +34,12 @@ public class Session {
 
     public Session() {}
 
-    public Session(UUID userId, String userIp){
+    public Session(UUID userId, String userIp, String refreshTokenHash, Timestamp createdAt, Timestamp expiresAt){
         this.userIp = userIp;
         this.userId = userId;
-        this.createdAt = new Timestamp(System.currentTimeMillis());
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(this.createdAt);
-        int SESSION_LENGTH = Integer.parseInt(ConfigReader.getStringValue("SESSION_LENGTH"));
-        cal.add(Calendar.DAY_OF_MONTH, SESSION_LENGTH);
-        this.expiresAt = new Timestamp(cal.getTimeInMillis());
-        //this.refreshTokenHash = SessionManager.generateNewRefreshToken();
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+        this.refreshTokenHash = refreshTokenHash;
     }
 
     public Timestamp getCreatedAt() {

@@ -20,10 +20,10 @@ import java.sql.Timestamp;
 import java.util.*;
 
 //each thread has it's own repository
-//upd. no threads
+//upd. no threads => static everything
 public class Repository {
 
-    public boolean isLoginTaken(String login)
+    public static boolean isLoginTaken(String login)
         throws NonUniqueUserException{
         boolean isLoginTaken = false;
         Map<String, Object> properties = new HashMap<>();
@@ -37,7 +37,7 @@ public class Repository {
         };
     }
 
-    public User getUserByLogin(String login) throws NonUniqueUserException {
+    public static User getUserByLogin(String login) throws NonUniqueUserException {
         Map<String, Object> properties = new HashMap<>();
         properties.put("login", login);
         List<User> results = DAO.executeQuery("SELECT u FROM User u WHERE u.login = :login", properties, User.class);
@@ -50,7 +50,7 @@ public class Repository {
         return results.getFirst();
     }
 
-    public Subscription getSubscriptionByUserId(UUID userId) throws NonUniqueSubscriptionException {
+    public static Subscription getSubscriptionByUserId(UUID userId) throws NonUniqueSubscriptionException {
         Map<String, Object> properties = new HashMap<>();
         properties.put("userId", userId);
         List<Subscription> results = DAO.executeQuery("SELECT s FROM Subscription s WHERE s.userId = :userId", properties, Subscription.class);
@@ -63,7 +63,7 @@ public class Repository {
         return results.getFirst();
     }
 
-    public Session getSessionByHashedRefreshToken(String hashedRefreshToken){
+    public static Session getSessionByHashedRefreshToken(String hashedRefreshToken){
         Map<String, Object> properties = new HashMap<>();
         properties.put("hashedRefreshToken", hashedRefreshToken);
         List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.refreshTokenHash = :hashedRefreshToken", properties, Session.class);
@@ -73,7 +73,7 @@ public class Repository {
         return results.getFirst();
     }
 
-    public void saveSession(Session session,int max_sessions_amount){
+    public static UUID saveSession(Session session,int max_sessions_amount){
         SessionDao sDao = new SessionDao();
         Map<String, Object> properties = new HashMap<>();
         properties.put("userId", session.getUserId());
@@ -92,25 +92,16 @@ public class Repository {
             }
         }
 
-        sDao.save(session);
+        return sDao.save(session);
     }
 
-    //no need to check old sessions
-    @Deprecated
-    public void registerNewUser(User user, String userIp){
-        EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-        em.getTransaction().begin();
-
-        em.persist(user);
-        Session session = new Session(user.getUserId(), userIp);
-        em.persist(session);
-
-        em.getTransaction().commit();
-        em.close();
+    public static UUID saveUser(User user){
+        return new UserDao().save(user);
     }
 
+
     @Deprecated
-    public void deleteUser(User user){
+    public static void deleteUser(User user){
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
         em.getTransaction().begin();
 

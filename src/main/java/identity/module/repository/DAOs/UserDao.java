@@ -16,10 +16,12 @@ public class UserDao implements DAO<User> {
 
 
     @Override
-    public void save(User obj) {
+    public UUID save(User obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
         em.persist(obj);
+        UUID userId = obj.getUserId();
         em.close();
+        return userId;
     }
 
     @Override

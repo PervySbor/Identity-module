@@ -3,12 +3,17 @@ package identity.module.utils;
 import identity.module.exceptions.FailedToHashException;
 import identity.module.utils.config.ConfigReader;
 
-import javax.crypto.*;
+
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 public class SecurityManager {
 
@@ -29,6 +34,18 @@ public class SecurityManager {
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e){
             throw (FailedToHashException) new FailedToHashException("").initCause(e);
         }
+    }
+
+    public static String hashJWT(String header, String payload) throws NoSuchAlgorithmException, InvalidKeyException {
+        String data = header + "." + payload;
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec keySpec = new SecretKeySpec(SECRET_KEY, "HmacSHA256");
+        mac.init(keySpec);
+
+        byte[] hmacBytes = mac.doFinal(data.getBytes());
+        String signature = Base64.getUrlEncoder().encodeToString(hmacBytes);
+        data = Base64.getUrlEncoder().encodeToString(data.getBytes());
+        return data + "." + signature;
     }
 
 
