@@ -17,7 +17,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.logging.Level;
 
 public class AuthorisationService {
@@ -25,6 +24,7 @@ public class AuthorisationService {
     private final int SESSION_LENGTH = Integer.parseInt(ConfigReader.getStringValue("SESSION_LENGTH"));
     private final int MAX_SESSIONS_AMOUNT  =  Integer.parseInt(ConfigReader.getStringValue("MAX_SESSIONS_AMOUNT"));
 
+    //TO BE REFACTORED
     //can be used both for user and admin login
     protected Properties login(String jsonRequest) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
         Properties result = new Properties();
@@ -45,7 +45,7 @@ public class AuthorisationService {
         }
         if(user == null){
             try {
-                String error = JsonManager.getErrorMessage(404, "Not found", "User with this login doesn't exist");
+                String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
                 result.setProperty("error", error);
             } catch (JsonProcessingException e){
                 LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
@@ -55,14 +55,19 @@ public class AuthorisationService {
         else {
             try {
                 hashedPassword = identity.module.utils.SecurityManager.hashString(password);
-            } catch (FailedToHashException e) {
+                if(!hashedPassword.equals(user.getPasswordHash())) {
+                    String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
+                    result.setProperty("error", error);
+                    return result;
+                }
+            } catch (FailedToHashException | JsonProcessingException e) {
                 LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
                 return result;
             }
             String refreshToken = SessionManager.generateNewRefreshToken();
             try{
                 String refreshTokenHash = SecurityManager.hashString(refreshToken);
-                String jwt = SessionManager.createNewSession(user.getUserId(), userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
+                String jwt = SessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                 result.setProperty("refresh_token", refreshToken);
                 result.setProperty("jwt", jwt);
             } catch (FailedToHashException | NonUniqueSubscriptionException | NoSuchAlgorithmException |
@@ -93,7 +98,7 @@ public class AuthorisationService {
         }
         if(loginTaken){
             try {
-                String error = JsonManager.getErrorMessage(409, "Conflict", "Login is already taken");
+                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
                 result.setProperty("error", error);
             } catch (JsonProcessingException e){
                 LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
@@ -108,11 +113,10 @@ public class AuthorisationService {
                 return result;
             }
             User newUser = new User(login, hashedPassword, role);
-            UUID userId = Repository.saveUser(newUser);
             String refreshToken = SessionManager.generateNewRefreshToken();
             try{
                 String refreshTokenHash = SecurityManager.hashString(refreshToken);
-                String jwt = SessionManager.createNewSession(userId, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
+                String jwt = SessionManager.createNewSession(newUser, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                 result.setProperty("refresh_token", refreshToken);
                 result.setProperty("jwt", jwt);
             } catch (FailedToHashException | NonUniqueSubscriptionException | NoSuchAlgorithmException |

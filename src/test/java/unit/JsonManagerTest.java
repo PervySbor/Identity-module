@@ -50,10 +50,10 @@ public class JsonManagerTest {
         int statusCode = 409;
         String error = "Conflict";
         String message = "Login is already taken";
-        String expectedResult = "{\"status\":409,\"error\":\"Conflict\",\"message\":\"Login is already taken\"}";
+        String expectedResult = "{\"status\":409,\"statusText\":\"Conflict\",\"message\":\"Login is already taken\"}";
 
         Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
-        Method getErrorMessage = jsonManagerClass.getDeclaredMethod("getErrorMessage", int.class, String.class, String.class);
+        Method getErrorMessage = jsonManagerClass.getDeclaredMethod("getResponseMessage", int.class, String.class, String.class);
         getErrorMessage.setAccessible(true);
 
         String result = (String) getErrorMessage.invoke(null, statusCode, error, message);

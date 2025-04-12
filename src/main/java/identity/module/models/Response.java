@@ -1,21 +1,20 @@
 package identity.module.models;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value={"status", "error", "message"})
-public class ErrorResponse {
+@JsonPropertyOrder(value={"status", "statusText", "message"})
+public class Response {
 
     private int status;
 
-    private String error;
+    private String statusText;
 
     private String message;
 
-    public ErrorResponse(int statusCode, String error, String message){
+    public Response(int statusCode, String statusText, String message){
         this.status = statusCode;
-        this.error = error;
+        this.statusText = statusText;
         this.message = message;
     }
 
@@ -25,8 +24,8 @@ public class ErrorResponse {
     }
 
     @JsonGetter
-    public String getError() {
-        return error;
+    public String getStatusText() {
+        return statusText;
     }
 
     @JsonGetter

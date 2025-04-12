@@ -11,4 +11,5 @@ module identity.module {
     exports identity.module.models to com.fasterxml.jackson.databind;
     opens identity.module.utils.config to identity.module.unit;
     opens identity.module.utils to identity.module.unit;
+    opens identity.module.annotations to identity.module.unit;
 }

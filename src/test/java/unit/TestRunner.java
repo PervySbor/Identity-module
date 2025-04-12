@@ -10,8 +10,12 @@ public class TestRunner {
     public static void main(String[] args) {
         Result result = JUnitCore.runClasses(JsonManagerTest.class, LogManagerTest.class, ConfigReaderTest.class, RepositoryTest.class);
         List<Failure> fails = result.getFailures();
-        for(Failure fail : fails){
-            System.out.println(fail.getMessage());
+        if (!fails.isEmpty()) {
+            System.out.println("Failed: ");
+            for (Failure fail : fails) {
+                System.out.println("test: " + fail.getTestHeader());
+                System.out.println("message: " + fail.getMessage());
+            }
         }
         System.out.println("Ran " + result.getRunCount() + " test(s)");
         System.out.println("Failed: " + result.getFailureCount());

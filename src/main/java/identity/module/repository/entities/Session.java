@@ -17,8 +17,9 @@ public class Session {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID sessionId;
 
-    @Column(name="user_id")
-    private UUID userId;
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="user_id")
+    private User user;
 
     @Column(name="refresh_token_hash")
     private String refreshTokenHash; //created new for each new session
@@ -34,9 +35,9 @@ public class Session {
 
     public Session() {}
 
-    public Session(UUID userId, String userIp, String refreshTokenHash, Timestamp createdAt, Timestamp expiresAt){
+    public Session(User user, String userIp, String refreshTokenHash, Timestamp createdAt, Timestamp expiresAt){
         this.userIp = userIp;
-        this.userId = userId;
+        this.user = user;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.refreshTokenHash = refreshTokenHash;
@@ -46,8 +47,8 @@ public class Session {
         return createdAt;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
     public UUID getSessionId() {
@@ -70,8 +71,8 @@ public class Session {
         this.createdAt = createdAt;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUserId(User user) {
+        this.user = user;
     }
 
     public void setExpiresAt(Timestamp expiresAt) {

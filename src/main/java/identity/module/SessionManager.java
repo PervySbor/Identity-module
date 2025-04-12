@@ -6,6 +6,7 @@ import identity.module.exceptions.NonUniqueSubscriptionException;
 import identity.module.repository.Repository;
 import identity.module.repository.entities.Session;
 import identity.module.repository.entities.Subscription;
+import identity.module.repository.entities.User;
 import identity.module.utils.JsonManager;
 import identity.module.utils.SecurityManager;
 import identity.module.utils.config.ConfigReader;
@@ -32,9 +33,9 @@ public class SessionManager {
         return SecurityManager.hashJWT(header, payload);
     }
 
-    public static  String createNewSession(UUID userId, String userIp, String refreshTokenHash, Roles role, int sessionLength, int max_sessions_amount)
+    public static  String createNewSession(User user, String userIp, String refreshTokenHash, Roles role, int sessionLength, int max_sessions_amount)
             throws NonUniqueSubscriptionException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-        Subscription subscription = Repository.getSubscriptionByUserId(userId);
+        Subscription subscription = Repository.getSubscriptionByUserId(user.getUserId());
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         Calendar cal = Calendar.getInstance();
         cal.setTime(currentTimestamp);
@@ -45,7 +46,7 @@ public class SessionManager {
                 expectedSessionEnd = subscription.getExpireAt();
             }
         }
-        Session session = new Session(userId, userIp, refreshTokenHash, currentTimestamp, expectedSessionEnd);
+        Session session = new Session(user, userIp, refreshTokenHash, currentTimestamp, expectedSessionEnd);
         UUID sessionId = Repository.saveSession(session, max_sessions_amount);
         return createJWT(role, sessionId);
     }

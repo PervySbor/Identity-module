@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import identity.module.enums.Roles;
 import identity.module.exceptions.FailedToReadJsonValueException;
 import identity.module.exceptions.ParsingUserRequestException;
-import identity.module.models.ErrorResponse;
 import identity.module.models.JwtPayload;
+import identity.module.models.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,11 +39,11 @@ public class JsonManager {
         return result;
     }
 
-    public static String getErrorMessage(int statusCode, String error, String message)
+    public static String getResponseMessage(int statusCode, String error, String message)
             throws JsonProcessingException {
-        ErrorResponse errorResponse = new ErrorResponse(statusCode, error, message);
+        Response response = new Response(statusCode, error, message);
 
-        return mapper.writeValueAsString(errorResponse);
+        return mapper.writeValueAsString(response);
     }
 
     public static String getJWTPayload(Roles role, UUID session_id)

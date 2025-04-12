@@ -1,10 +1,12 @@
 package identity.module.repository;
 
 
+import identity.module.annotations.Temporary;
 import identity.module.exceptions.NonUniqueSubscriptionException;
 import identity.module.exceptions.NonUniqueUserException;
 import identity.module.interfaces.DAO;
 import identity.module.repository.DAOs.SessionDao;
+import identity.module.repository.DAOs.SubscriptionDao;
 import identity.module.repository.DAOs.UserDao;
 import identity.module.repository.entities.Session;
 import identity.module.repository.entities.Subscription;
@@ -76,7 +78,7 @@ public class Repository {
     public static UUID saveSession(Session session,int max_sessions_amount){
         SessionDao sDao = new SessionDao();
         Map<String, Object> properties = new HashMap<>();
-        properties.put("userId", session.getUserId());
+        properties.put("userId", session.getUser().getUserId());
         List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.userId = :userId", properties, Session.class);
         if (results.size() > max_sessions_amount - 1){
             while(results.size() > max_sessions_amount - 1) {
@@ -103,8 +105,25 @@ public class Repository {
         Map<String, Object> properties = new HashMap<>();
         properties.put("login", login);
         return DAO.executeUDQuery("DELETE FROM User u WHERE u.login=:login", properties);
-
     }
 
+    public static Session findSession(UUID sessionId){
+        return new SessionDao().find(sessionId);
+    }
 
+    public static boolean hasSubscription(User user){
+        Subscription subscription = new SubscriptionDao().find(user);
+        return subscription != null;
+    }
+
+    public static void saveSubscription(Subscription subscription){
+        new SubscriptionDao().save(subscription);
+    }
+
+    @Temporary(purpose="testing", description = "will be replaced with proper deletion method as soon as I specify Subscription lifecycle")
+    public static void deleteSubscription(User user){
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("userId", user.getUserId());
+        DAO.executeUDQuery("DELETE s FROM Subscription s WHERE s.user = :userId",properties);
+    }
 }
