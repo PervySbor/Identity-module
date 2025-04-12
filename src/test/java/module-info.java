@@ -1,9 +1,8 @@
-module identity.module.test {
+module identity.module.unit {
     requires junit;
     requires identity.module;
     requires java.logging;
     requires org.junit.jupiter.api;
 
-    exports test to junit;
-    //exports test to org.junit.platform.commons;
+    exports unit to junit;
 }

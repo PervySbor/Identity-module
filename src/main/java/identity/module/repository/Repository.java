@@ -99,14 +99,11 @@ public class Repository {
         return new UserDao().save(user);
     }
 
+    public static int deleteUser(String login){
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("login", login);
+        return DAO.executeUDQuery("DELETE FROM User u WHERE u.login=:login", properties);
 
-    @Deprecated
-    public static void deleteUser(User user){
-        EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-        em.getTransaction().begin();
-
-        em.getTransaction().commit();
-        em.close();
     }
 
 

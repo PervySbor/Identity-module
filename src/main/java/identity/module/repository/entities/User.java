@@ -3,6 +3,7 @@ package identity.module.repository.entities;
 import identity.module.enums.Roles;
 import jakarta.persistence.*;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static jakarta.persistence.EnumType.STRING;
@@ -23,13 +24,36 @@ public class User {
 
     //@OneToOne
     //as Role is deprecated
-    //@JoinColumn(name="role_id") // ???
+    //@JoinColumn(name="role_id")
     @Enumerated(STRING)
+    @Column(name="role")
     private Roles role;
 
 
     public User() {}
 
+    @Override
+    public boolean equals(Object o) {
+        System.out.println("passed " + o);
+        System.out.println(this);
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(login, user.login) && Objects.equals(passwordHash, user.passwordHash) && role == user.role;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(login, passwordHash, role);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "login='" + login + '\'' +
+                ", passwordHash='" + passwordHash + '\'' +
+                ", role=" + role +
+                '}';
+    }
 
     //assumed usage: creating new user (registration)
     public User(String login, String passwordHash, Roles role){

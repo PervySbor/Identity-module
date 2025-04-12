@@ -12,8 +12,10 @@ public class SubscriptionDao implements DAO<Subscription> {
     @Override
     public UUID save(Subscription obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
+        em.getTransaction().begin();
         em.persist(obj);
-        UUID userId = obj.getUser().getUserId(); //temporary?
+        UUID userId = obj.getUser().getUserId();
+        em.getTransaction().commit();
         em.close();
         return userId;
     }

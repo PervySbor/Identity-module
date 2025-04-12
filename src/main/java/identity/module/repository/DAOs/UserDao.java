@@ -18,8 +18,10 @@ public class UserDao implements DAO<User> {
     @Override
     public UUID save(User obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
+        em.getTransaction().begin();
         em.persist(obj);
         UUID userId = obj.getUserId();
+        em.getTransaction().commit();
         em.close();
         return userId;
     }
@@ -45,6 +47,7 @@ public class UserDao implements DAO<User> {
         em.close();
         return result;
     }
+
 
 //    public User findByLogin(String login) {
 //        EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();

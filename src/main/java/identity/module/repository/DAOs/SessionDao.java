@@ -12,8 +12,10 @@ public class SessionDao implements DAO<Session> {
     @Override
     public UUID save(Session obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
+        em.getTransaction().begin();
         em.persist(obj);
         UUID sessionId = obj.getSessionId();
+        em.getTransaction().commit();
         em.close();
         return sessionId;
     }
