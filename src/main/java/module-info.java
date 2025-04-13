@@ -12,4 +12,5 @@ module identity.module {
     opens identity.module.utils.config to identity.module.unit;
     opens identity.module.utils to identity.module.unit;
     opens identity.module.annotations to identity.module.unit;
+    exports identity.module.repository.DAOs to identity.module.unit;
 }

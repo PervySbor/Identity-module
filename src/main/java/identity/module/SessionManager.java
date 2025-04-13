@@ -35,7 +35,7 @@ public class SessionManager {
 
     public static  String createNewSession(User user, String userIp, String refreshTokenHash, Roles role, int sessionLength, int max_sessions_amount)
             throws NonUniqueSubscriptionException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-        Subscription subscription = Repository.getSubscriptionByUserId(user.getUserId());
+        Subscription subscription = Repository.getRelevantSubscription(user.getUserId());
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         Calendar cal = Calendar.getInstance();
         cal.setTime(currentTimestamp);

@@ -75,7 +75,7 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
 
     @Override
     public List<String> getManagedClassNames() {
-        return List.of("identity.module.repository.entities.User", "identity.module.repository.entities.Session", "identity.module.repository.entities..Subscription");
+        return List.of("identity.module.repository.entities.User", "identity.module.repository.entities.Session", "identity.module.repository.entities.Subscription");
     }
 
     @Override

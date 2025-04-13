@@ -2,17 +2,22 @@ package unit;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class RepositoryTest {
+
+    //store userId's and sessionId's
+    private List<UUID> existingUsers = new ArrayList<>();
+    private List<UUID> existingSubscriptions = new ArrayList<>();
 
     @Before
     public void loadEntitiesForTest()
@@ -37,8 +42,8 @@ public class RepositoryTest {
         Method saveUser = repositoryClass.getMethod("saveUser", userClass);
         Method saveSubscription = repositoryClass.getMethod("saveSubscription", subscriptionClass);
 
-        System.out.println(saveUser.invoke(null, userInstance));
-        saveSubscription.invoke(null,subscriptionInstance);
+        this.existingUsers.add((UUID) saveUser.invoke(null, userInstance));
+        this.existingSubscriptions.add((UUID) saveSubscription.invoke(null,subscriptionInstance));
 
         System.out.println("Finished preparations");
 
@@ -47,20 +52,55 @@ public class RepositoryTest {
     //WARNING!!! uses getUserByLogin() itself
     @After
     public void deleteEntitiesAfterTest() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
-
+        System.out.println("Started cleaning");
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
 
-        Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
-        Method deleteUser = repositoryClass.getMethod("deleteUser", String.class);
-        deleteUser.invoke(null, "login_1");
+        Class<?> userDaoClass = Class.forName("identity.module.repository.DAOs.UserDao");
+        Method deleteUser = userDaoClass.getMethod("delete", Object.class);
+        Method findUser = userDaoClass.getMethod("find", Object.class);
 
-        Method getUserByLogin = repositoryClass.getMethod("getUserByLogin", String.class);
-        Object receivedUserInstance = getUserByLogin.invoke(null, "login_1");
+        Class<?> subscriptionDaoClass = Class.forName("identity.module.repository.DAOs.SubscriptionDao");
+        Method deleteSubscription = subscriptionDaoClass.getMethod("delete", Object.class);
+        Method findSubscription = subscriptionDaoClass.getMethod("find", Object.class);
 
-        Method deleteSubscription = repositoryClass.getMethod("deleteSubscription", userClass);
-        deleteSubscription.invoke(null, receivedUserInstance);
+        List<Object> userInstances = new ArrayList<>();
+
+        for(UUID userId : this.existingUsers){
+            userInstances.add(findUser.)
+        }
+
+        while(!this.existingSubscriptions.isEmpty()){
+            Object subscriptionInstance =
+        }
 
         System.out.println("Finished cleaning");
+    }
+
+    @Test
+    public void testSaveSubscription() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
+        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, rolesEnum, "NEW_USER");
+
+        Class<?> subscriptionTypesEnum = Class.forName("identity.module.enums.SubscriptionType");
+        Object newSubscriptionType = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, subscriptionTypesEnum, "TRIAL");
+
+        Class<?> userClass = Class.forName("identity.module.repository.entities.User");
+        Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
+        Object userInstance = userConstructor.newInstance("some_login", "password_hash", newUserRole);
+
+        Class<?> subscriptionClass = Class.forName("identity.module.repository.entities.Subscription");
+        Constructor<?> subscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum);
+        Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance,newSubscriptionType);
+
+        Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
+        Method saveUser = repositoryClass.getMethod("saveUser", userClass);
+        Method saveSubscription = repositoryClass.getMethod("saveSubscription", subscriptionClass);
+
+        System.out.println(saveUser.invoke(null, userInstance));
+        saveSubscription.invoke(null,subscriptionInstance);
+
     }
 
     @Test

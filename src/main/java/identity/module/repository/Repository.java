@@ -52,7 +52,8 @@ public class Repository {
         return results.getFirst();
     }
 
-    public static Subscription getSubscriptionByUserId(UUID userId) throws NonUniqueSubscriptionException {
+    public static Subscription getRelevantSubscription(UUID userId) throws NonUniqueSubscriptionException {
+        Subscription subscription;
         Map<String, Object> properties = new HashMap<>();
         properties.put("userId", userId);
         List<Subscription> results = DAO.executeQuery("SELECT s FROM Subscription s WHERE s.userId = :userId", properties, Subscription.class);
@@ -62,7 +63,14 @@ public class Repository {
         else if (results.size() > 1){
             throw new NonUniqueSubscriptionException("Found more than one subscription for user with id: <" + userId + ">");
         }
-        return results.getFirst();
+        subscription = results.getFirst();
+        Timestamp expiresAt = subscription.getExpireAt();
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+        if(currentTimestamp.compareTo(expiresAt) > 0) {//subscription is expired
+            new SubscriptionDao().delete(subscription);
+            return  null;
+        }
+        return subscription;
     }
 
     public static Session getSessionByHashedRefreshToken(String hashedRefreshToken){
@@ -101,6 +109,8 @@ public class Repository {
         return new UserDao().save(user);
     }
 
+    //WARNING!!! Users are NEVER deleted, only BANNED (even from admin's account)
+    @Temporary(purpose="testing", description = "will be replaced, in tests will be used static query method from DAO interface")
     public static int deleteUser(String login){
         Map<String, Object> properties = new HashMap<>();
         properties.put("login", login);
@@ -123,7 +133,7 @@ public class Repository {
     @Temporary(purpose="testing", description = "will be replaced with proper deletion method as soon as I specify Subscription lifecycle")
     public static void deleteSubscription(User user){
         Map<String, Object> properties = new HashMap<>();
-        properties.put("userId", user.getUserId());
-        DAO.executeUDQuery("DELETE s FROM Subscription s WHERE s.user = :userId",properties);
+        properties.put("user", user);
+        DAO.executeUDQuery("DELETE FROM Subscription s WHERE s.user = :user",properties);
     }
 }

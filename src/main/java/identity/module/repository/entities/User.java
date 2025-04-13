@@ -32,6 +32,13 @@ public class User {
 
     public User() {}
 
+    //assumed usage: creating new user (registration)
+    public User(String login, String passwordHash, Roles role){
+        this.login = login;
+        this.passwordHash = passwordHash;
+        this.role = role;
+    }
+
     @Override
     public boolean equals(Object o) {
         System.out.println("passed " + o);
@@ -53,13 +60,6 @@ public class User {
                 ", passwordHash='" + passwordHash + '\'' +
                 ", role=" + role +
                 '}';
-    }
-
-    //assumed usage: creating new user (registration)
-    public User(String login, String passwordHash, Roles role){
-        this.login = login;
-        this.passwordHash = passwordHash;
-        this.role = role;
     }
 
     public Roles getRole() {
