@@ -22,10 +22,13 @@ import java.sql.Timestamp;
 import java.util.*;
 
 //each thread has it's own repository
-//upd. no threads => static everything
 public class Repository {
 
-    public static boolean isLoginTaken(String login)
+    private final SubscriptionDao subscriptionDao = new SubscriptionDao();
+    private final SessionDao sessionDao = new SessionDao();
+    private final UserDao userDao = new UserDao();
+
+    public boolean isLoginTaken(String login)
         throws NonUniqueUserException{
         boolean isLoginTaken = false;
         Map<String, Object> properties = new HashMap<>();
@@ -39,7 +42,7 @@ public class Repository {
         };
     }
 
-    public static User getUserByLogin(String login) throws NonUniqueUserException {
+    public User getUserByLogin(String login) throws NonUniqueUserException {
         Map<String, Object> properties = new HashMap<>();
         properties.put("login", login);
         List<User> results = DAO.executeQuery("SELECT u FROM User u WHERE u.login = :login", properties, User.class);
@@ -52,7 +55,7 @@ public class Repository {
         return results.getFirst();
     }
 
-    public static Subscription getRelevantSubscription(UUID userId) throws NonUniqueSubscriptionException {
+    public Subscription getRelevantSubscription(UUID userId) throws NonUniqueSubscriptionException {
         Subscription subscription;
         Map<String, Object> properties = new HashMap<>();
         properties.put("userId", userId);
@@ -67,13 +70,13 @@ public class Repository {
         Timestamp expiresAt = subscription.getExpireAt();
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         if(currentTimestamp.compareTo(expiresAt) > 0) {//subscription is expired
-            new SubscriptionDao().delete(subscription);
+            subscriptionDao.delete(subscription);
             return  null;
         }
         return subscription;
     }
 
-    public static Session getSessionByHashedRefreshToken(String hashedRefreshToken){
+    public Session getSessionByHashedRefreshToken(String hashedRefreshToken){
         Map<String, Object> properties = new HashMap<>();
         properties.put("hashedRefreshToken", hashedRefreshToken);
         List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.refreshTokenHash = :hashedRefreshToken", properties, Session.class);
@@ -83,8 +86,7 @@ public class Repository {
         return results.getFirst();
     }
 
-    public static UUID saveSession(Session session,int max_sessions_amount){
-        SessionDao sDao = new SessionDao();
+    public UUID saveSession(Session session,int max_sessions_amount){
         Map<String, Object> properties = new HashMap<>();
         properties.put("userId", session.getUser().getUserId());
         List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.userId = :userId", properties, Session.class);
@@ -98,40 +100,40 @@ public class Repository {
                         earliestCreatedSession = s;
                     }
                 }
-                sDao.delete(earliestCreatedSession);
+                sessionDao.delete(earliestCreatedSession);
             }
         }
 
-        return sDao.save(session);
+        return sessionDao.save(session);
     }
 
-    public static UUID saveUser(User user){
+    public UUID saveUser(User user){
         return new UserDao().save(user);
     }
 
     //WARNING!!! Users are NEVER deleted, only BANNED (even from admin's account)
     @Temporary(purpose="testing", description = "will be replaced, in tests will be used static query method from DAO interface")
-    public static int deleteUser(String login){
+    public int deleteUser(String login){
         Map<String, Object> properties = new HashMap<>();
         properties.put("login", login);
         return DAO.executeUDQuery("DELETE FROM User u WHERE u.login=:login", properties);
     }
 
-    public static Session findSession(UUID sessionId){
-        return new SessionDao().find(sessionId);
+    public Session findSession(UUID sessionId){
+        return sessionDao.find(sessionId);
     }
 
-    public static boolean hasSubscription(User user){
-        Subscription subscription = new SubscriptionDao().find(user);
+    public boolean hasSubscription(User user){
+        Subscription subscription = subscriptionDao.find(user);
         return subscription != null;
     }
 
-    public static void saveSubscription(Subscription subscription){
-        new SubscriptionDao().save(subscription);
+    public void saveSubscription(Subscription subscription){
+        subscriptionDao.save(subscription);
     }
 
     @Temporary(purpose="testing", description = "will be replaced with proper deletion method as soon as I specify Subscription lifecycle")
-    public static void deleteSubscription(User user){
+    public void deleteSubscription(User user){
         Map<String, Object> properties = new HashMap<>();
         properties.put("user", user);
         DAO.executeUDQuery("DELETE FROM Subscription s WHERE s.user = :user",properties);

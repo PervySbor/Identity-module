@@ -25,7 +25,7 @@ public class Subscription {
 
     @Column(name="subscription_type")
     @Enumerated(STRING)
-    private SubscriptionType subscriptionType; //can be changed to enum later
+    private SubscriptionType subscriptionType;
 
     public Subscription() {}
 

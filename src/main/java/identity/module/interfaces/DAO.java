@@ -18,7 +18,7 @@ public interface DAO<T> {
 
     void update(T obj);
 
-    T find(Object privateKey);
+    T find(Object primaryKey);
 
     static <X> List<X> executeQuery(String jsql, Map<String, Object> args, Class<X> Xclass){
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();

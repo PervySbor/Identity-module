@@ -29,7 +29,10 @@ public class UserDao implements DAO<User> {
     @Override
     public void delete(User obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-        em.remove(obj);
+        em.getTransaction().begin();
+        User managedObj = em.find(User.class, obj.getUserId());
+        em.remove(managedObj);
+        em.getTransaction().commit();
         em.close();
     }
 
@@ -41,9 +44,9 @@ public class UserDao implements DAO<User> {
     }
 
     @Override
-    public User find(Object privateKey) {
+    public User find(Object primaryKey) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-        User result = em.find(User.class, privateKey);
+        User result = em.find(User.class, primaryKey);
         em.close();
         return result;
     }

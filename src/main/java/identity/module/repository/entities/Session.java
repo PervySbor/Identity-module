@@ -1,6 +1,5 @@
 package identity.module.repository.entities;
 
-import identity.module.SessionManager;
 import identity.module.utils.config.ConfigReader;
 import jakarta.persistence.*;
 

@@ -55,11 +55,13 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
-                "login='" + login + '\'' +
-                ", passwordHash='" + passwordHash + '\'' +
-                ", role=" + role +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("User{");
+        if (userId != null){
+            sb.append("userId='").append(userId).append("'");
+        }
+        sb.append("login='").append(login).append('\'').append(", passwordHash='").append(passwordHash).append('\'').append(", role=").append(role).append('}');
+        return sb.toString();
     }
 
     public Roles getRole() {

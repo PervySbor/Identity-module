@@ -23,7 +23,10 @@ public class SessionDao implements DAO<Session> {
     @Override
     public void delete(Session obj) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-        em.remove(obj);
+        em.getTransaction().begin();
+        Session managedObj = em.merge(obj);
+        em.remove(managedObj);
+        em.getTransaction().commit();
         em.close();
     }
 
@@ -35,9 +38,9 @@ public class SessionDao implements DAO<Session> {
     }
 
     @Override
-    public Session find(Object privateKey) {
+    public Session find(Object primaryKey) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
-        Session result = em.find(Session.class, privateKey);
+        Session result = em.find(Session.class, primaryKey);
         em.close();
         return result;
     }

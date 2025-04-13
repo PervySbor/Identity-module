@@ -17,14 +17,19 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.UUID;
 
-public class SessionManager {
+class SessionManager {
 
+    private final Repository repository;
 
-    public static String generateNewRefreshToken(){
+    SessionManager(Repository repo){
+        this.repository = repo;
+    }
+
+    public String generateNewRefreshToken(){
         return UUID.randomUUID().toString();
     }
 
-    public static String createJWT(Roles role, UUID session_id)
+    public String createJWT(Roles role, UUID session_id)
             throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeyException {
         String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 
@@ -33,9 +38,9 @@ public class SessionManager {
         return SecurityManager.hashJWT(header, payload);
     }
 
-    public static  String createNewSession(User user, String userIp, String refreshTokenHash, Roles role, int sessionLength, int max_sessions_amount)
+    public String createNewSession(User user, String userIp, String refreshTokenHash, Roles role, int sessionLength, int max_sessions_amount)
             throws NonUniqueSubscriptionException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-        Subscription subscription = Repository.getRelevantSubscription(user.getUserId());
+        Subscription subscription = this.repository.getRelevantSubscription(user.getUserId());
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         Calendar cal = Calendar.getInstance();
         cal.setTime(currentTimestamp);
@@ -47,7 +52,7 @@ public class SessionManager {
             }
         }
         Session session = new Session(user, userIp, refreshTokenHash, currentTimestamp, expectedSessionEnd);
-        UUID sessionId = Repository.saveSession(session, max_sessions_amount);
+        UUID sessionId = this.repository.saveSession(session, max_sessions_amount);
         return createJWT(role, sessionId);
     }
 

@@ -17,7 +17,6 @@ public class RepositoryTest {
 
     //store userId's and sessionId's
     private List<UUID> existingUsers = new ArrayList<>();
-    private List<UUID> existingSubscriptions = new ArrayList<>();
 
     @Before
     public void loadEntitiesForTest()
@@ -39,11 +38,12 @@ public class RepositoryTest {
         Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance,newSubscriptionType);
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
         Method saveUser = repositoryClass.getMethod("saveUser", userClass);
         Method saveSubscription = repositoryClass.getMethod("saveSubscription", subscriptionClass);
 
-        this.existingUsers.add((UUID) saveUser.invoke(null, userInstance));
-        this.existingSubscriptions.add((UUID) saveSubscription.invoke(null,subscriptionInstance));
+        this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance));
+        saveSubscription.invoke(repositoryInstance, subscriptionInstance);
 
         System.out.println("Finished preparations");
 
@@ -56,21 +56,29 @@ public class RepositoryTest {
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
 
         Class<?> userDaoClass = Class.forName("identity.module.repository.DAOs.UserDao");
+        Constructor<?> userDaoConstructor = userDaoClass.getConstructor();
+        Object userDaoInstance = userDaoConstructor.newInstance();
         Method deleteUser = userDaoClass.getMethod("delete", Object.class);
         Method findUser = userDaoClass.getMethod("find", Object.class);
 
         Class<?> subscriptionDaoClass = Class.forName("identity.module.repository.DAOs.SubscriptionDao");
+        Constructor<?> subscriptionDaoConstructor = subscriptionDaoClass.getConstructor();
+        Object subscriptionDaoInstance = subscriptionDaoConstructor.newInstance();
         Method deleteSubscription = subscriptionDaoClass.getMethod("delete", Object.class);
         Method findSubscription = subscriptionDaoClass.getMethod("find", Object.class);
 
         List<Object> userInstances = new ArrayList<>();
 
         for(UUID userId : this.existingUsers){
-            userInstances.add(findUser.)
+            userInstances.add(findUser.invoke(userDaoInstance, userId)); //found all previously created users
         }
 
-        while(!this.existingSubscriptions.isEmpty()){
-            Object subscriptionInstance =
+        for(Object userInst : userInstances){
+            Object subscriptionInstance = findSubscription.invoke(subscriptionDaoInstance, userInst); //found all previously created Subscriptions (with Users as keys)
+            if (subscriptionInstance != null) {
+                deleteSubscription.invoke(subscriptionDaoInstance, subscriptionInstance);
+                deleteUser.invoke(userDaoInstance, userInst);
+            }
         }
 
         System.out.println("Finished cleaning");
@@ -95,42 +103,43 @@ public class RepositoryTest {
         Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance,newSubscriptionType);
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
         Method saveUser = repositoryClass.getMethod("saveUser", userClass);
         Method saveSubscription = repositoryClass.getMethod("saveSubscription", subscriptionClass);
 
-        System.out.println(saveUser.invoke(null, userInstance));
-        saveSubscription.invoke(null,subscriptionInstance);
+        this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance));
+        saveSubscription.invoke(repositoryInstance,subscriptionInstance);
 
     }
 
     @Test
     public void testIsLoginTaken_newLogin()
-            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
-        //Constructor<?> repositoryConstructor = repositoryClass.getConstructor();
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
         Method isLoginTaken = repositoryClass.getMethod("isLoginTaken", String.class);
         //Object repositoryInstance = repositoryConstructor.newInstance();
 
-        boolean result = (boolean) isLoginTaken.invoke(null, "new_login");
+        boolean result = (boolean) isLoginTaken.invoke(repositoryInstance, "new_login");
 
         assertFalse(result);
     }
 
     @Test
     public void testIsLoginTaken_usedLogin()
-            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
         //Constructor<?> repositoryConstructor = repositoryClass.getConstructor();
         Method isLoginTaken = repositoryClass.getMethod("isLoginTaken", String.class);
-        //Object repositoryInstance = repositoryConstructor.newInstance();
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
 
-        boolean result = (boolean) isLoginTaken.invoke(null, "login_1");
+        boolean result = (boolean) isLoginTaken.invoke(repositoryInstance, "login_1");
 
         assertTrue(result);
     }
@@ -147,8 +156,9 @@ public class RepositoryTest {
         Object userInstance = userConstructor.newInstance("login_1", "password_hash", newUserRole);
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
         Method getUserByLogin = repositoryClass.getMethod("getUserByLogin", String.class);
-        Object receivedUserInstance = getUserByLogin.invoke(null, "login_1");
+        Object receivedUserInstance = getUserByLogin.invoke(repositoryInstance, "login_1");
 
         assertTrue(userInstance.equals(userClass.cast(receivedUserInstance)));
     }

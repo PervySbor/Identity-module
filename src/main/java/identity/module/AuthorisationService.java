@@ -23,6 +23,8 @@ public class AuthorisationService {
 
     private final int SESSION_LENGTH = Integer.parseInt(ConfigReader.getStringValue("SESSION_LENGTH"));
     private final int MAX_SESSIONS_AMOUNT  =  Integer.parseInt(ConfigReader.getStringValue("MAX_SESSIONS_AMOUNT"));
+    private final Repository repository = new Repository();
+    private final SessionManager sessionManager = new SessionManager(repository);
 
     //TO BE REFACTORED
     //can be used both for user and admin login
@@ -38,7 +40,7 @@ public class AuthorisationService {
             password = values.get(1);
             userIp = values.get(2);
 
-            user = Repository.getUserByLogin(login);
+            user = this.repository.getUserByLogin(login);
         } catch (ParsingUserRequestException | NonUniqueUserException e){
             LogManager.logException(e, Level.FINE);
             return result;  //in case message is corrupted
@@ -64,10 +66,10 @@ public class AuthorisationService {
                 LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
                 return result;
             }
-            String refreshToken = SessionManager.generateNewRefreshToken();
+            String refreshToken = this.sessionManager.generateNewRefreshToken();
             try{
                 String refreshTokenHash = SecurityManager.hashString(refreshToken);
-                String jwt = SessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
+                String jwt = this.sessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                 result.setProperty("refresh_token", refreshToken);
                 result.setProperty("jwt", jwt);
             } catch (FailedToHashException | NonUniqueSubscriptionException | NoSuchAlgorithmException |
@@ -91,7 +93,7 @@ public class AuthorisationService {
             password = values.get(1);
             userIp = values.get(2);
 
-            loginTaken = Repository.isLoginTaken(login);
+            loginTaken = (this.repository).isLoginTaken(login);
         } catch (ParsingUserRequestException | NonUniqueUserException e){
             LogManager.logException(e, Level.FINE);
             return result;  //in case message is corrupted
@@ -113,10 +115,10 @@ public class AuthorisationService {
                 return result;
             }
             User newUser = new User(login, hashedPassword, role);
-            String refreshToken = SessionManager.generateNewRefreshToken();
+            String refreshToken = this.sessionManager.generateNewRefreshToken();
             try{
                 String refreshTokenHash = SecurityManager.hashString(refreshToken);
-                String jwt = SessionManager.createNewSession(newUser, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
+                String jwt = this.sessionManager.createNewSession(newUser, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                 result.setProperty("refresh_token", refreshToken);
                 result.setProperty("jwt", jwt);
             } catch (FailedToHashException | NonUniqueSubscriptionException | NoSuchAlgorithmException |
