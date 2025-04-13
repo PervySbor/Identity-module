@@ -4,14 +4,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeAll;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
+
 
 public class RepositoryTest {
 
@@ -175,22 +175,28 @@ public class RepositoryTest {
                 .invoke(null, subscriptionTypesEnum, "TRIAL");
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
-        Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
-        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
 
         Object repositoryInstance = repositoryClass.getConstructor().newInstance();
+        Method getRelevantSubscriptions = repositoryClass.getMethod("getRelevantSubscription", userClass);
+
+        Method getUserByLogin = repositoryClass.getMethod("getUserByLogin", String.class);
+        Object receivedUserInstance = getUserByLogin.invoke(repositoryInstance, "login_1");
+
 
         Class<?> subscriptionClass = Class.forName("identity.module.repository.entities.Subscription");
         Constructor<?> subscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum);
-        Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance,newSubscriptionType);
+        Object subscriptionInstance = subscriptionConstructor.newInstance(receivedUserInstance,newSubscriptionType);
 
-        Object receivedSubscription = repositoryClass.getMethod("getRelevantSubscription", userClass)
-                .invoke(repositoryInstance, userInstance);
+        Object receivedSubscription = getRelevantSubscriptions.invoke(repositoryInstance, receivedUserInstance);
+
+        System.out.println("invoked");
 
         System.out.println(subscriptionInstance);
         System.out.println(receivedSubscription);
 
         assertEquals(subscriptionInstance,receivedSubscription);
+
+        System.out.println("asserted");
 
     }
 

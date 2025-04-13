@@ -63,6 +63,7 @@ public class Repository {
 //        Map<String, Object> properties = new HashMap<>();
 //        properties.put("user", user);
         subscription = this.subscriptionDao.find(user);
+        System.out.println("we're out");
 //        List<Subscription> results = DAO.executeQuery("SELECT s FROM Subscription s WHERE s.user = :user", properties, Subscription.class);
 //        if (results.isEmpty()){
 //            return null;

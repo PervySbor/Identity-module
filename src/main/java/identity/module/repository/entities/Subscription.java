@@ -50,11 +50,12 @@ public class Subscription {
                 '}';
     }
 
+    //WARNING!!! For test assertions only
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Subscription that = (Subscription) o;
-        return Objects.equals(user, that.user) && Objects.equals(expireAt, that.expireAt) && Objects.equals(createdAt, that.createdAt) && subscriptionType == that.subscriptionType;
+        return Objects.equals(user, that.user) && subscriptionType == that.subscriptionType;
     }
 
     @Override

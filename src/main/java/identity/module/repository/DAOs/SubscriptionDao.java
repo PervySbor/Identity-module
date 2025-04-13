@@ -50,10 +50,10 @@ public class SubscriptionDao implements DAO<Subscription> {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
 
         em.getTransaction().begin();
-        em.merge(primaryKey);
+        User managedUser = (User) em.merge(primaryKey);
         //Subscription result = em.find(Subscription.class, primaryKey);
         TypedQuery<Subscription> query = em.createQuery("SELECT s FROM Subscription s WHERE s.user=:user", Subscription.class);
-        query.setParameter("user",(User) primaryKey);
+        query.setParameter("user",managedUser);
         Subscription result = query.getSingleResult();
 
         em.getTransaction().commit();

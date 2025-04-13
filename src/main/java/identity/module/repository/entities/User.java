@@ -39,6 +39,7 @@ public class User {
         this.role = role;
     }
 
+    //WARNING!!! For test assertions only
     @Override
     public boolean equals(Object o) {
         System.out.println("passed " + o);
