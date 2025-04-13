@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class RepositoryTest {
 
-    //store userId's and sessionId's
+    //stores userId's
     private List<UUID> existingUsers = new ArrayList<>();
 
     @Before
@@ -31,7 +31,7 @@ public class RepositoryTest {
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
         Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
-        Object userInstance = userConstructor.newInstance("login_1", "password_hash", newUserRole);
+        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
 
         Class<?> subscriptionClass = Class.forName("identity.module.repository.entities.Subscription");
         Constructor<?> subscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum);
@@ -96,7 +96,7 @@ public class RepositoryTest {
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
         Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
-        Object userInstance = userConstructor.newInstance("some_login", "password_hash", newUserRole);
+        Object userInstance = userConstructor.newInstance("some_login", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
 
         Class<?> subscriptionClass = Class.forName("identity.module.repository.entities.Subscription");
         Constructor<?> subscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum);
@@ -153,7 +153,7 @@ public class RepositoryTest {
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
         Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
-        Object userInstance = userConstructor.newInstance("login_1", "password_hash", newUserRole);
+        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
         Object repositoryInstance = repositoryClass.getConstructor().newInstance();
@@ -161,6 +161,37 @@ public class RepositoryTest {
         Object receivedUserInstance = getUserByLogin.invoke(repositoryInstance, "login_1");
 
         assertTrue(userInstance.equals(userClass.cast(receivedUserInstance)));
+    }
+
+    @Test
+    public void testGetRelevantSubscription_ifRelevant() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
+        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, rolesEnum, "NEW_USER");
+
+        Class<?> subscriptionTypesEnum = Class.forName("identity.module.enums.SubscriptionType");
+        Object newSubscriptionType = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, subscriptionTypesEnum, "TRIAL");
+
+        Class<?> userClass = Class.forName("identity.module.repository.entities.User");
+        Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
+        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
+
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
+
+        Class<?> subscriptionClass = Class.forName("identity.module.repository.entities.Subscription");
+        Constructor<?> subscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum);
+        Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance,newSubscriptionType);
+
+        Object receivedSubscription = repositoryClass.getMethod("getRelevantSubscription", userClass)
+                .invoke(repositoryInstance, userInstance);
+
+        System.out.println(subscriptionInstance);
+        System.out.println(receivedSubscription);
+
+        assertEquals(subscriptionInstance,receivedSubscription);
+
     }
 
 

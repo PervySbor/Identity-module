@@ -2,6 +2,7 @@ package identity.module.repository;
 
 
 import identity.module.annotations.Temporary;
+import identity.module.annotations.Tested;
 import identity.module.exceptions.NonUniqueSubscriptionException;
 import identity.module.exceptions.NonUniqueUserException;
 import identity.module.interfaces.DAO;
@@ -28,6 +29,7 @@ public class Repository {
     private final SessionDao sessionDao = new SessionDao();
     private final UserDao userDao = new UserDao();
 
+    @Tested
     public boolean isLoginTaken(String login)
         throws NonUniqueUserException{
         boolean isLoginTaken = false;
@@ -42,6 +44,7 @@ public class Repository {
         };
     }
 
+    @Tested
     public User getUserByLogin(String login) throws NonUniqueUserException {
         Map<String, Object> properties = new HashMap<>();
         properties.put("login", login);
@@ -55,18 +58,19 @@ public class Repository {
         return results.getFirst();
     }
 
-    public Subscription getRelevantSubscription(UUID userId) throws NonUniqueSubscriptionException {
+    public Subscription getRelevantSubscription(User user) throws NonUniqueSubscriptionException {
         Subscription subscription;
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("userId", userId);
-        List<Subscription> results = DAO.executeQuery("SELECT s FROM Subscription s WHERE s.userId = :userId", properties, Subscription.class);
-        if (results.isEmpty()){
-            return null;
-        }
-        else if (results.size() > 1){
-            throw new NonUniqueSubscriptionException("Found more than one subscription for user with id: <" + userId + ">");
-        }
-        subscription = results.getFirst();
+//        Map<String, Object> properties = new HashMap<>();
+//        properties.put("user", user);
+        subscription = this.subscriptionDao.find(user);
+//        List<Subscription> results = DAO.executeQuery("SELECT s FROM Subscription s WHERE s.user = :user", properties, Subscription.class);
+//        if (results.isEmpty()){
+//            return null;
+//        }
+//        else if (results.size() > 1){
+//            throw new NonUniqueSubscriptionException("Found more than one subscription for user with id: <" + user.getUserId() + ">");
+//        }
+//        subscription = results.getFirst();
         Timestamp expiresAt = subscription.getExpireAt();
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         if(currentTimestamp.compareTo(expiresAt) > 0) {//subscription is expired
@@ -107,17 +111,11 @@ public class Repository {
         return sessionDao.save(session);
     }
 
+    @Tested
     public UUID saveUser(User user){
         return new UserDao().save(user);
     }
 
-    //WARNING!!! Users are NEVER deleted, only BANNED (even from admin's account)
-    @Temporary(purpose="testing", description = "will be replaced, in tests will be used static query method from DAO interface")
-    public int deleteUser(String login){
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("login", login);
-        return DAO.executeUDQuery("DELETE FROM User u WHERE u.login=:login", properties);
-    }
 
     public Session findSession(UUID sessionId){
         return sessionDao.find(sessionId);
@@ -128,14 +126,9 @@ public class Repository {
         return subscription != null;
     }
 
+    @Tested
     public void saveSubscription(Subscription subscription){
         subscriptionDao.save(subscription);
     }
 
-    @Temporary(purpose="testing", description = "will be replaced with proper deletion method as soon as I specify Subscription lifecycle")
-    public void deleteSubscription(User user){
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("user", user);
-        DAO.executeUDQuery("DELETE FROM Subscription s WHERE s.user = :user",properties);
-    }
 }

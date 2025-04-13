@@ -49,11 +49,14 @@ public class SubscriptionDao implements DAO<Subscription> {
     public Subscription find(Object primaryKey) {
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
 
+        em.getTransaction().begin();
+        em.merge(primaryKey);
         //Subscription result = em.find(Subscription.class, primaryKey);
         TypedQuery<Subscription> query = em.createQuery("SELECT s FROM Subscription s WHERE s.user=:user", Subscription.class);
         query.setParameter("user",(User) primaryKey);
         Subscription result = query.getSingleResult();
 
+        em.getTransaction().commit();
         em.close();
         return result;
     }

@@ -31,52 +31,35 @@ public class AuthorisationService {
     protected Properties login(String jsonRequest) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
         Properties result = new Properties();
         List<String> values;
-        String login, password, userIp, hashedPassword;
+        String login, userIp, hashedPassword;
         User user;
-        boolean loginTaken;
         try {
             values = JsonManager.unwrapPairs(List.of("login", "password", "user_ip"), jsonRequest);
             login = values.get(0);
-            password = values.get(1);
+            hashedPassword = values.get(1);
             userIp = values.get(2);
 
             user = this.repository.getUserByLogin(login);
-        } catch (ParsingUserRequestException | NonUniqueUserException e){
-            LogManager.logException(e, Level.FINE);
-            return result;  //in case message is corrupted
-        }
-        if(user == null){
-            try {
+            if(user == null){
                 String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
                 result.setProperty("error", error);
-            } catch (JsonProcessingException e){
-                LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
-                return result;
-            }
-        }
-        else {
-            try {
-                hashedPassword = identity.module.utils.SecurityManager.hashString(password);
+            } else {
+                //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
                 if(!hashedPassword.equals(user.getPasswordHash())) {
-                    String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
+                    String error = JsonManager.getResponseMessage(403, "Unauthorized", "Incorrect password");
                     result.setProperty("error", error);
-                    return result;
+                } else {
+                    String refreshToken = this.sessionManager.generateNewRefreshToken();
+                    String refreshTokenHash = SecurityManager.hashString(refreshToken);
+                    String jwt = this.sessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
+                    result.setProperty("refresh_token", refreshToken);
+                    result.setProperty("jwt", jwt);
                 }
-            } catch (FailedToHashException | JsonProcessingException e) {
-                LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
-                return result;
             }
-            String refreshToken = this.sessionManager.generateNewRefreshToken();
-            try{
-                String refreshTokenHash = SecurityManager.hashString(refreshToken);
-                String jwt = this.sessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
-                result.setProperty("refresh_token", refreshToken);
-                result.setProperty("jwt", jwt);
-            } catch (FailedToHashException | NonUniqueSubscriptionException | NoSuchAlgorithmException |
-                     InvalidKeyException | JsonProcessingException e) {
-                LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
-                return result;
-            }
+        } catch (FailedToHashException | ParsingUserRequestException | NonUniqueUserException | JsonProcessingException
+                 | NonUniqueSubscriptionException | NoSuchAlgorithmException | InvalidKeyException e){
+            LogManager.logException(e, Level.FINE);
+            return result;  //in case message is corrupted
         }
         return result;
     }
@@ -85,47 +68,31 @@ public class AuthorisationService {
     protected Properties register(String jsonRequest, Roles role) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
         Properties result = new Properties();
         List<String> values;
-        String login, password, userIp, hashedPassword;
+        String login, hashedPassword, userIp;
         boolean loginTaken;
         try {
             values = JsonManager.unwrapPairs(List.of("login", "password", "user_ip"), jsonRequest);
             login = values.get(0);
-            password = values.get(1);
+            hashedPassword = values.get(1);
             userIp = values.get(2);
 
             loginTaken = (this.repository).isLoginTaken(login);
-        } catch (ParsingUserRequestException | NonUniqueUserException e){
-            LogManager.logException(e, Level.FINE);
-            return result;  //in case message is corrupted
-        }
-        if(loginTaken){
-            try {
+            if(loginTaken){
                 String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
                 result.setProperty("error", error);
-            } catch (JsonProcessingException e){
-                LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
-                return result;
-            }
-        }
-        else {
-            try {
-                hashedPassword = identity.module.utils.SecurityManager.hashString(password);
-            } catch (FailedToHashException e) {
-                LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
-                return result;
-            }
-            User newUser = new User(login, hashedPassword, role);
-            String refreshToken = this.sessionManager.generateNewRefreshToken();
-            try{
+            } else {
+                //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
+                User newUser = new User(login, hashedPassword, role);
+                String refreshToken = this.sessionManager.generateNewRefreshToken();
                 String refreshTokenHash = SecurityManager.hashString(refreshToken);
                 String jwt = this.sessionManager.createNewSession(newUser, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                 result.setProperty("refresh_token", refreshToken);
                 result.setProperty("jwt", jwt);
-            } catch (FailedToHashException | NonUniqueSubscriptionException | NoSuchAlgorithmException |
-                     InvalidKeyException | JsonProcessingException e) {
-                LogManager.logException(e, Level.SEVERE); //something wrong with the logic (or I messed up with the arguments)
-                return result;
             }
+        } catch (ParsingUserRequestException | NonUniqueUserException | JsonProcessingException |
+                 FailedToHashException | NoSuchAlgorithmException | NonUniqueSubscriptionException | InvalidKeyException e){
+            LogManager.logException(e, Level.FINE);
+            return result;  //in case message is corrupted
         }
         return result;
     }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Objects;
 
 import static jakarta.persistence.EnumType.STRING;
 
@@ -37,6 +38,28 @@ public class Subscription {
         cal.add(Calendar.DAY_OF_MONTH, subscriptionType.getLength());
         this.expireAt = new Timestamp(cal.getTimeInMillis());
         this.subscriptionType = subscriptionType;
+    }
+
+    @Override
+    public String toString() {
+        return "Subscription{" +
+                "user=" + user +
+                ", expireAt=" + expireAt +
+                ", createdAt=" + createdAt +
+                ", subscriptionType=" + subscriptionType +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Subscription that = (Subscription) o;
+        return Objects.equals(user, that.user) && Objects.equals(expireAt, that.expireAt) && Objects.equals(createdAt, that.createdAt) && subscriptionType == that.subscriptionType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, expireAt, createdAt, subscriptionType);
     }
 
     public SubscriptionType getSubscriptionType() {
