@@ -3,8 +3,10 @@ package identity.module.repository;
 
 import identity.module.annotations.Temporary;
 import identity.module.annotations.Tested;
+import identity.module.enums.Roles;
 import identity.module.exceptions.NonUniqueSubscriptionException;
 import identity.module.exceptions.NonUniqueUserException;
+import identity.module.exceptions.UserNotFoundException;
 import identity.module.interfaces.DAO;
 import identity.module.repository.DAOs.SessionDao;
 import identity.module.repository.DAOs.SubscriptionDao;
@@ -58,12 +60,11 @@ public class Repository {
         return results.getFirst();
     }
 
-    public Subscription getRelevantSubscription(User user) throws NonUniqueSubscriptionException {
+    public Subscription getRelevantSubscription(User user) throws UserNotFoundException, NonUniqueUserException {
         Subscription subscription;
 //        Map<String, Object> properties = new HashMap<>();
 //        properties.put("user", user);
         subscription = this.subscriptionDao.find(user);
-        System.out.println("we're out");
 //        List<Subscription> results = DAO.executeQuery("SELECT s FROM Subscription s WHERE s.user = :user", properties, Subscription.class);
 //        if (results.isEmpty()){
 //            return null;
@@ -76,6 +77,15 @@ public class Repository {
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         if(currentTimestamp.compareTo(expiresAt) > 0) {//subscription is expired
             subscriptionDao.delete(subscription);
+            Map<String, Object> properties = new HashMap<>();
+            properties.put("userId", user.getUserId());
+            properties.put("role", Roles.OUT_TRIAL_USER);
+            int linesAffected = DAO.executeUDQuery("UPDATE User SET role=:role WHERE userId=:userId", properties);
+            if(linesAffected == 0){
+                throw new UserNotFoundException("failed to find user with login = <" + user.getLogin() + ">");
+            } else if(linesAffected > 1){
+                throw  new NonUniqueUserException("found more than one user with id <" + user.getUserId() + ">");
+            }
             return  null;
         }
         return subscription;

@@ -6,6 +6,7 @@ import identity.module.repository.entities.Subscription;
 import identity.module.repository.entities.User;
 import identity.module.repository.utils.JpaUtils;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 
 import java.util.UUID;
@@ -47,6 +48,7 @@ public class SubscriptionDao implements DAO<Subscription> {
      * */
     @Override
     public Subscription find(Object primaryKey) {
+        Subscription result;
         EntityManager em = JpaUtils.getEntityManagerFactory().createEntityManager();
 
         em.getTransaction().begin();
@@ -54,8 +56,11 @@ public class SubscriptionDao implements DAO<Subscription> {
         //Subscription result = em.find(Subscription.class, primaryKey);
         TypedQuery<Subscription> query = em.createQuery("SELECT s FROM Subscription s WHERE s.user=:user", Subscription.class);
         query.setParameter("user",managedUser);
-        Subscription result = query.getSingleResult();
-
+        try {
+            result = query.getSingleResult();
+        } catch (NoResultException e){
+            result = null;
+        }
         em.getTransaction().commit();
         em.close();
         return result;

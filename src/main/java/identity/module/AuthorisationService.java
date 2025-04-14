@@ -2,10 +2,7 @@ package identity.module;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import identity.module.enums.Roles;
-import identity.module.exceptions.FailedToHashException;
-import identity.module.exceptions.NonUniqueSubscriptionException;
-import identity.module.exceptions.NonUniqueUserException;
-import identity.module.exceptions.ParsingUserRequestException;
+import identity.module.exceptions.*;
 import identity.module.repository.Repository;
 import identity.module.repository.entities.User;
 import identity.module.utils.JsonManager;
@@ -56,8 +53,9 @@ public class AuthorisationService {
                     result.setProperty("jwt", jwt);
                 }
             }
-        } catch (FailedToHashException | ParsingUserRequestException | NonUniqueUserException | JsonProcessingException
-                 | NonUniqueSubscriptionException | NoSuchAlgorithmException | InvalidKeyException e){
+        } catch (FailedToHashException | ParsingUserRequestException | NonUniqueUserException |
+                 JsonProcessingException | NoSuchAlgorithmException |
+                 InvalidKeyException | UserNotFoundException e){
             LogManager.logException(e, Level.FINE);
             return result;  //in case message is corrupted
         }
@@ -90,7 +88,8 @@ public class AuthorisationService {
                 result.setProperty("jwt", jwt);
             }
         } catch (ParsingUserRequestException | NonUniqueUserException | JsonProcessingException |
-                 FailedToHashException | NoSuchAlgorithmException | NonUniqueSubscriptionException | InvalidKeyException e){
+                 FailedToHashException | NoSuchAlgorithmException |
+                 InvalidKeyException | UserNotFoundException e){
             LogManager.logException(e, Level.FINE);
             return result;  //in case message is corrupted
         }

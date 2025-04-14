@@ -30,6 +30,7 @@ public class Subscription {
 
     public Subscription() {}
 
+    //For creating new subscription
     public Subscription(User user, SubscriptionType subscriptionType){
         this.user = user;
         this.createdAt = new Timestamp(System.currentTimeMillis());
@@ -38,6 +39,14 @@ public class Subscription {
         cal.add(Calendar.DAY_OF_MONTH, subscriptionType.getLength());
         this.expireAt = new Timestamp(cal.getTimeInMillis());
         this.subscriptionType = subscriptionType;
+    }
+
+    //For the tests
+    public Subscription(User user, SubscriptionType subscriptionType, Timestamp createdAt, Timestamp expiresAt){
+        this.user = user;
+        this.subscriptionType = subscriptionType;
+        this.createdAt = createdAt;
+        this.expireAt = expiresAt;
     }
 
     @Override

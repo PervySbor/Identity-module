@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -21,29 +22,43 @@ public class RepositoryTest {
     @Before
     public void loadEntitiesForTest()
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Timestamp(System.currentTimeMillis()));
+        cal.add(Calendar.DAY_OF_MONTH, -5);
+        Timestamp expiredStart = new Timestamp(cal.getTimeInMillis());
+        cal.add(Calendar.DAY_OF_MONTH, -5);
+        Timestamp expiredEnd = new Timestamp(cal.getTimeInMillis());
+
         Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
-        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
-                .invoke(null, rolesEnum, "NEW_USER");
+        Object subscribedUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, rolesEnum, "SUBSCRIBED");
 
         Class<?> subscriptionTypesEnum = Class.forName("identity.module.enums.SubscriptionType");
-        Object newSubscriptionType = Enum.class.getMethod("valueOf", Class.class, String.class)
+        Object trialSubscriptionType = Enum.class.getMethod("valueOf", Class.class, String.class)
                 .invoke(null, subscriptionTypesEnum, "TRIAL");
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
         Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
-        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
+        Object userInstance1 = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", subscribedUserRole);
+        Object userInstance2 = userConstructor.newInstance("login_2", "hashed_password", subscribedUserRole);
 
         Class<?> subscriptionClass = Class.forName("identity.module.repository.entities.Subscription");
         Constructor<?> subscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum);
-        Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance,newSubscriptionType);
+        Constructor<?> fullSubscriptionConstructor = subscriptionClass.getConstructor(userClass, subscriptionTypesEnum, Timestamp.class, Timestamp.class);
+        Object subscriptionInstance = subscriptionConstructor.newInstance(userInstance1,trialSubscriptionType);
+        Object expiredSubscriptionInstance = fullSubscriptionConstructor.newInstance(userInstance2, trialSubscriptionType, expiredStart, expiredEnd);
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
         Object repositoryInstance = repositoryClass.getConstructor().newInstance();
         Method saveUser = repositoryClass.getMethod("saveUser", userClass);
         Method saveSubscription = repositoryClass.getMethod("saveSubscription", subscriptionClass);
 
-        this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance));
+        this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance1));
         saveSubscription.invoke(repositoryInstance, subscriptionInstance);
+        this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance2));
+        saveSubscription.invoke(repositoryInstance, expiredSubscriptionInstance);
 
         System.out.println("Finished preparations");
 
@@ -77,8 +92,8 @@ public class RepositoryTest {
             Object subscriptionInstance = findSubscription.invoke(subscriptionDaoInstance, userInst); //found all previously created Subscriptions (with Users as keys)
             if (subscriptionInstance != null) {
                 deleteSubscription.invoke(subscriptionDaoInstance, subscriptionInstance);
-                deleteUser.invoke(userDaoInstance, userInst);
             }
+            deleteUser.invoke(userDaoInstance, userInst);
         }
 
         System.out.println("Finished cleaning");
@@ -148,12 +163,12 @@ public class RepositoryTest {
     public void testGetUserByLogin()
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
-        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
-                .invoke(null, rolesEnum, "NEW_USER");
+        Object subscribedUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, rolesEnum, "SUBSCRIBED");
 
         Class<?> userClass = Class.forName("identity.module.repository.entities.User");
         Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
-        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
+        Object userInstance = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", subscribedUserRole);
 
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
         Object repositoryInstance = repositoryClass.getConstructor().newInstance();
@@ -166,9 +181,6 @@ public class RepositoryTest {
     @Test
     public void testGetRelevantSubscription_ifRelevant() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
-        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
-        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
-                .invoke(null, rolesEnum, "NEW_USER");
 
         Class<?> subscriptionTypesEnum = Class.forName("identity.module.enums.SubscriptionType");
         Object newSubscriptionType = Enum.class.getMethod("valueOf", Class.class, String.class)
@@ -200,7 +212,31 @@ public class RepositoryTest {
 
     }
 
+    @Test
+    public void testGetRelevantSubscription_ifExpired() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
 
+        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+        Object outTrialUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, rolesEnum, "OUT_TRIAL_USER");
+
+        Class<?> userClass = Class.forName("identity.module.repository.entities.User");
+        Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
+        Object expectedUserInstance = userConstructor.newInstance("login_2", "hashed_password", outTrialUserRole);
+
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
+        Method getRelevantSubscriptions = repositoryClass.getMethod("getRelevantSubscription", userClass);
+
+        Method getUserByLogin = repositoryClass.getMethod("getUserByLogin", String.class);
+        Object receivedUserInstance = getUserByLogin.invoke(repositoryInstance, "login_2");
+
+
+        Object receivedSubscription = getRelevantSubscriptions.invoke(repositoryInstance, receivedUserInstance);
+        Object updatedUserInstance = getUserByLogin.invoke(repositoryInstance, "login_2");
+
+        assertNull(receivedSubscription); //as subscription is expired, should receive null
+        assertEquals(expectedUserInstance, updatedUserInstance);
+    }
 
 
 

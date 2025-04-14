@@ -3,6 +3,8 @@ package identity.module;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import identity.module.enums.Roles;
 import identity.module.exceptions.NonUniqueSubscriptionException;
+import identity.module.exceptions.NonUniqueUserException;
+import identity.module.exceptions.UserNotFoundException;
 import identity.module.repository.Repository;
 import identity.module.repository.entities.Session;
 import identity.module.repository.entities.Subscription;
@@ -39,7 +41,7 @@ class SessionManager {
     }
 
     public String createNewSession(User user, String userIp, String refreshTokenHash, Roles role, int sessionLength, int max_sessions_amount)
-            throws NonUniqueSubscriptionException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+            throws NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException, UserNotFoundException, NonUniqueUserException {
         Subscription subscription = this.repository.getRelevantSubscription(user);
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         Calendar cal = Calendar.getInstance();
