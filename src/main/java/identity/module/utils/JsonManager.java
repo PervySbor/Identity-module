@@ -11,6 +11,8 @@ import identity.module.models.JwtPayload;
 import identity.module.models.Response;
 
 import java.io.IOException;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -46,9 +48,9 @@ public class JsonManager {
         return mapper.writeValueAsString(response);
     }
 
-    public static String getJWTPayload(Roles role, UUID session_id)
+    public static String getJWTPayload(Roles role, UUID session_id, Timestamp createdAt, Timestamp expireAt)
             throws JsonProcessingException {
-        JwtPayload payload = new JwtPayload(role, session_id);
+        JwtPayload payload = new JwtPayload(role, session_id, createdAt, expireAt);
         return mapper.writeValueAsString(payload);
     }
 

@@ -5,5 +5,6 @@
   "DB_PASSWORD" : "root",
   "ENCRYPTION_PASSWORD" : "password",
   "SESSION_LENGTH" : "7",
+  "JWT_LIFE_MINUTES" : "60",
   "MAX_SESSIONS_AMOUNT" : "5"
 }

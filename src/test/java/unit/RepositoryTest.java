@@ -20,6 +20,13 @@ public class RepositoryTest {
     private List<UUID> existingUsers = new ArrayList<>();
     private List<UUID> existingSessions = new ArrayList<>();
 
+    public List<UUID> getExistingUsers(){
+        return this.existingUsers;
+    }
+
+    public List<UUID> getExistingSessions(){
+        return this.existingSessions;
+    }
 
 
     @Before
@@ -35,6 +42,9 @@ public class RepositoryTest {
         Timestamp expiredStart = new Timestamp(cal.getTimeInMillis());
         cal.add(Calendar.DAY_OF_MONTH, -5);
         Timestamp expiredEnd = new Timestamp(cal.getTimeInMillis());
+        cal.setTime(validStart);
+        cal.add(Calendar.MINUTE, 10);
+        Timestamp expiresSoonEnd = new Timestamp(cal.getTimeInMillis());
 
 
         Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
@@ -63,7 +73,7 @@ public class RepositoryTest {
         Class<?> sessionClass = Class.forName("identity.module.repository.entities.Session");
         Constructor<?> sessionConstructor = sessionClass.getConstructor(userClass, String.class, String.class, Timestamp.class, Timestamp.class);
         Object expiredSessionInstance = sessionConstructor.newInstance(userInstance2, "127.0.0.1", "hashed_refresh_token_1", expiredStart, expiredEnd);
-        Object relevantSessionInstance = sessionConstructor.newInstance(userInstance1, "127.0.0.1", "hashed_refresh_token_2", validStart, validEnd);
+        Object expiresSoonSessionInstance = sessionConstructor.newInstance(userInstance1, "127.0.0.1", "hashed_refresh_token_2", validStart, expiresSoonEnd);
         Object repeatedSessionInstance1 = sessionConstructor.newInstance(userInstance3, "127.0.0.1", "hashed_refresh_token_3", validStart, validEnd);
         Object repeatedSessionInstance2 = sessionConstructor.newInstance(userInstance3, "127.0.0.2", "hashed_refresh_token_4", validStart, validEnd);
         Object repeatedSessionInstance3 = sessionConstructor.newInstance(userInstance3, "127.0.0.3", "hashed_refresh_token_5", validStart, validEnd);
@@ -83,7 +93,7 @@ public class RepositoryTest {
 
         this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance1));
         saveSubscription.invoke(repositoryInstance, subscriptionInstance);
-        this.existingSessions.add((UUID) saveSession.invoke(sessionDaoInstance, relevantSessionInstance));
+        this.existingSessions.add((UUID) saveSession.invoke(sessionDaoInstance, expiresSoonSessionInstance));
         this.existingUsers.add((UUID) saveUser.invoke(repositoryInstance, userInstance2));
         saveSubscription.invoke(repositoryInstance, expiredSubscriptionInstance);
         this.existingSessions.add((UUID) saveSession.invoke(sessionDaoInstance, expiredSessionInstance)); //not tested yet

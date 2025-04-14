@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import identity.module.enums.Roles;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -18,9 +19,11 @@ public class JwtPayload {
 
     private String role;
 
-    public JwtPayload(Roles role, UUID session_id){
+    public JwtPayload(Roles role, UUID session_id, Timestamp createdAt, Timestamp expiresAt){
         this.role = role.name();
         this.sessionId = session_id;
+        this.createdAt = createdAt;
+        this.expireAt = expiresAt;
     }
 
     @JsonGetter("sid")

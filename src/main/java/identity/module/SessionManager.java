@@ -31,11 +31,23 @@ class SessionManager {
         return UUID.randomUUID().toString();
     }
 
-    public String createJWT(Roles role, UUID session_id)
+    String createJWT(Roles role, UUID session_id)
             throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeyException {
         String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 
-        String payload = JsonManager.getJWTPayload(role, session_id);
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+        Timestamp sessionExpireAt = this.repository.findSession(session_id).getExpiresAt();
+        int jwtLifespan = Integer.parseInt(ConfigReader.getStringValue("JWT_LIFE_MINUTES"));
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(currentTimestamp);
+        cal.add(Calendar.MINUTE, jwtLifespan);
+        Timestamp standardExpireAt = new Timestamp(cal.getTimeInMillis());
+
+        if(standardExpireAt.compareTo(sessionExpireAt) > 0){
+            standardExpireAt = sessionExpireAt;
+        }
+
+        String payload = JsonManager.getJWTPayload(role, session_id, currentTimestamp, standardExpireAt);
 
         return SecurityManager.hashJWT(header, payload);
     }

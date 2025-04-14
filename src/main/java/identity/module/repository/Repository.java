@@ -110,7 +110,7 @@ public class Repository {
         return results.getFirst();
     }
 
-
+    @Tested
     public UUID saveSession(Session session,int max_sessions_amount){
         Map<String, Object> properties = new HashMap<>();
         properties.put("user", session.getUser());
