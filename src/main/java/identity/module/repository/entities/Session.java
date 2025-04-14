@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -40,6 +41,34 @@ public class Session {
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.refreshTokenHash = refreshTokenHash;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("User{");
+        if (sessionId != null){
+            sb.append("sessionId='").append(sessionId).append("'");
+        }
+        if (user != null){
+            sb.append("user='").append(user).append("'");
+        }
+        sb.append('\'').append(", refreshTokenHash='").append(refreshTokenHash)
+                .append('\'').append(", createdAt=").append(createdAt)
+                .append('\'').append(", expiresAt=").append(expiresAt).append('}');
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Session session = (Session) o;
+        return Objects.equals(refreshTokenHash, session.refreshTokenHash) && Objects.equals(userIp, session.userIp) && Objects.equals(createdAt, session.createdAt) && Objects.equals(expiresAt, session.expiresAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, refreshTokenHash, userIp, createdAt, expiresAt);
     }
 
     public Timestamp getCreatedAt() {

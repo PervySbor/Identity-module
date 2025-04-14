@@ -60,6 +60,7 @@ public class Repository {
         return results.getFirst();
     }
 
+    @Tested
     public Subscription getRelevantSubscription(User user) throws UserNotFoundException, NonUniqueUserException {
         Subscription subscription;
 //        Map<String, Object> properties = new HashMap<>();
@@ -73,38 +74,47 @@ public class Repository {
 //            throw new NonUniqueSubscriptionException("Found more than one subscription for user with id: <" + user.getUserId() + ">");
 //        }
 //        subscription = results.getFirst();
-        Timestamp expiresAt = subscription.getExpireAt();
-        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-        if(currentTimestamp.compareTo(expiresAt) > 0) {//subscription is expired
-            subscriptionDao.delete(subscription);
-            Map<String, Object> properties = new HashMap<>();
-            properties.put("userId", user.getUserId());
-            properties.put("role", Roles.OUT_TRIAL_USER);
-            int linesAffected = DAO.executeUDQuery("UPDATE User SET role=:role WHERE userId=:userId", properties);
-            if(linesAffected == 0){
-                throw new UserNotFoundException("failed to find user with login = <" + user.getLogin() + ">");
-            } else if(linesAffected > 1){
-                throw  new NonUniqueUserException("found more than one user with id <" + user.getUserId() + ">");
+        if (subscription != null) {
+            Timestamp expiresAt = subscription.getExpireAt();
+            Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+            if (currentTimestamp.compareTo(expiresAt) > 0) {//subscription is expired
+                subscriptionDao.delete(subscription);
+                Map<String, Object> properties = new HashMap<>();
+                properties.put("userId", user.getUserId());
+                properties.put("role", Roles.OUT_TRIAL_USER);
+                int linesAffected = DAO.executeUDQuery("UPDATE User SET role=:role WHERE userId=:userId", properties);
+                if (linesAffected == 0) {
+                    throw new UserNotFoundException("failed to find user with login = <" + user.getLogin() + ">");
+                } else if (linesAffected > 1) {
+                    throw new NonUniqueUserException("found more than one user with id <" + user.getUserId() + ">");
+                }
+                return null;
             }
-            return  null;
         }
         return subscription;
     }
 
-    public Session getSessionByHashedRefreshToken(String hashedRefreshToken){
+    @Tested
+    public Session getRelevantSession(String hashedRefreshToken){
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         Map<String, Object> properties = new HashMap<>();
         properties.put("hashedRefreshToken", hashedRefreshToken);
         List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.refreshTokenHash = :hashedRefreshToken", properties, Session.class);
         if (results.isEmpty()){
             return null;
         }
+        if (currentTimestamp.compareTo(results.getFirst().getExpiresAt()) > 0){ //session expired
+            sessionDao.delete(results.getFirst());
+            return null;
+        }
         return results.getFirst();
     }
 
+
     public UUID saveSession(Session session,int max_sessions_amount){
         Map<String, Object> properties = new HashMap<>();
-        properties.put("userId", session.getUser().getUserId());
-        List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.userId = :userId", properties, Session.class);
+        properties.put("user", session.getUser());
+        List<Session> results = DAO.executeQuery("SELECT s FROM Session s WHERE s.user = :user", properties, Session.class);
         if (results.size() > max_sessions_amount - 1){
             while(results.size() > max_sessions_amount - 1) {
                 Session earliestCreatedSession = results.getFirst();
@@ -115,6 +125,7 @@ public class Repository {
                         earliestCreatedSession = s;
                     }
                 }
+                results.remove(earliestCreatedSession);
                 sessionDao.delete(earliestCreatedSession);
             }
         }
@@ -137,7 +148,7 @@ public class Repository {
         return subscription != null;
     }
 
-    @Tested
+    @Tested //Only saves new subscriptions
     public void saveSubscription(Subscription subscription){
         subscriptionDao.save(subscription);
     }
