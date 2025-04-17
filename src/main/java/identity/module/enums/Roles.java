@@ -9,7 +9,7 @@ public enum Roles {
     ADMIN,
     BANNED;
 
-    public Roles createRoles(String roleName) throws IncorrectRolesType {
+    public static Roles createRoles(String roleName) throws IncorrectRolesType {
         return switch(roleName){
             case "NEW_USER" -> NEW_USER;
             case "OUT_TRIAL_USER" -> OUT_TRIAL_USER;

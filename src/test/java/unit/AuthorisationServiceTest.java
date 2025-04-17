@@ -2,16 +2,16 @@ package unit;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
 
 public class AuthorisationServiceTest {
 
@@ -90,54 +90,109 @@ public class AuthorisationServiceTest {
 
     @Test
     public void testLogin() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        String receivedJson = "{ \"login\": \"login_1\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\", \"user_ip\":  \"127.0.0.1\"}";
+        String receivedJson = "{ \"login\": \"login_1\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
         Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
         Object authServiceInstance = authServiceClass.getConstructor().newInstance();
-        Method login = authServiceClass.getDeclaredMethod("login", String.class);
+        Method login = authServiceClass.getDeclaredMethod("login", String.class, String.class);
         login.setAccessible(true);
 
-        System.out.println(login.invoke(authServiceInstance, receivedJson));
+        System.out.println("testLogin: ");
+        System.out.println("result:" + login.invoke(authServiceInstance, receivedJson, "127.0.0.1"));
+    }
+
+    @Test
+    public void testLogin_ifLoginNotRegistered() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String receivedJson = "{ \"login\": \"non_existing_login\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
+        Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
+        Object authServiceInstance = authServiceClass.getConstructor().newInstance();
+        Method login = authServiceClass.getDeclaredMethod("login", String.class, String.class);
+        login.setAccessible(true);
+
+
+        String result = ((Properties) login.invoke(authServiceInstance, receivedJson, "127.0.0.1")).toString();
+        System.out.println("Login_ifLoginNotRegistered:\n result error: " + result);
+        assertEquals("{error={\"status\":404,\"statusText\":\"Not found\",\"message\":\"User with this login doesn't exist\"}, statusCode=404}", result);
 
     }
 
     @Test
-    public void testRegister_ifLoginAlreadyTaken() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        String receivedJson = "{ \"login\": \"login_1\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\", \"user_ip\":  \"127.0.0.1\"}";
+    public void testRegister_User_ifLoginAlreadyTaken() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String receivedJson = "{ \"login\": \"login_1\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
 
-        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
-        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
-                .invoke(null, rolesEnum, "NEW_USER");
+//        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+//        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+//                .invoke(null, rolesEnum, "NEW_USER");
 
         Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
         Object authServiceInstance = authServiceClass.getConstructor().newInstance();
-        Method register = authServiceClass.getDeclaredMethod("register", String.class, rolesEnum);
+        Method register = authServiceClass.getDeclaredMethod("registerUser", String.class, String.class);
         register.setAccessible(true);
 
-        System.out.println(register.invoke(authServiceInstance, receivedJson, newUserRole));
-
+        String result = ((Properties) register.invoke(authServiceInstance, receivedJson, "127.0.0.1")).toString();
+        System.out.println("Register_ifLoginAlreadyTaken:\n result error: " + result);
+        assertEquals("{error={\"status\":409,\"statusText\":\"Conflict\",\"message\":\"Login is already taken\"}, statusCode=409}", result);
     }
 
     @Test
-    public void testRegister_ifValidLogin() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        String receivedJson = "{ \"login\": \"valid_login\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\", \"user_ip\":  \"127.0.0.1\"}";
+    public void testRegister_User_ifValidLogin() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String receivedJson = "{ \"login\": \"valid_login\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
 
-        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
-        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
-                .invoke(null, rolesEnum, "NEW_USER");
+//        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+//        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+//                .invoke(null, rolesEnum, "NEW_USER");
 
         Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
         Object authServiceInstance = authServiceClass.getConstructor().newInstance();
-        Method register = authServiceClass.getDeclaredMethod("register", String.class, rolesEnum);
+        Method register = authServiceClass.getDeclaredMethod("registerUser", String.class, String.class);
         register.setAccessible(true);
 
-        Properties result = (Properties) register.invoke(authServiceInstance, receivedJson, newUserRole);
+        Properties result = (Properties) register.invoke(authServiceInstance, receivedJson, "127.0.0.1");
+        System.out.println("testRegister_User_ifValidLogin:");
         System.out.println(result);
         this.refreshToken = result.getProperty("refresh_token");
     }
 
     @Test
+    public void testRegister_Admin_ifLoginAlreadyTaken() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String receivedJson = "{ \"login\": \"login_1\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
+
+//        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+//        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+//                .invoke(null, rolesEnum, "NEW_USER");
+
+        Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
+        Object authServiceInstance = authServiceClass.getConstructor().newInstance();
+        Method register = authServiceClass.getDeclaredMethod("registerAdmin", String.class);
+        register.setAccessible(true);
+
+        String result = ((Properties) register.invoke(authServiceInstance, receivedJson)).toString();
+        System.out.println("Register_ifLoginAlreadyTaken:\n result error: " + result);
+        assertEquals("{error={\"status\":409,\"statusText\":\"Conflict\",\"message\":\"Login is already taken\"}, statusCode=409}", result);
+    }
+
+    @Test
+    public void testRegister_Admin_ifValidLogin() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String receivedJson = "{ \"login\": \"valid_login\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
+
+//        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+//        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+//                .invoke(null, rolesEnum, "NEW_USER");
+
+        Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
+        Object authServiceInstance = authServiceClass.getConstructor().newInstance();
+        Method register = authServiceClass.getDeclaredMethod("registerAdmin", String.class);
+        register.setAccessible(true);
+
+        Properties result = (Properties) register.invoke(authServiceInstance, receivedJson);
+        System.out.println("testRegister_User_ifValidLogin:");
+        System.out.println(result);
+        this.refreshToken = result.getProperty("refresh_token");
+        assertEquals("{response={\"status\":200,\"statusText\":\"Ok\",\"message\":\"Successfully created admin account\"}, statusCode=200}", result.toString());
+    }
+
+    @Test
     public void testRefresh() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
-        testRegister_ifValidLogin();
+        testRegister_User_ifValidLogin(); // to get the refresh token for the current DB lifescope //as we delete everything after each test
         String receivedJson = "{\"refresh_token\":\""+ this.refreshToken +"\"}";
 
         Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
@@ -147,6 +202,7 @@ public class AuthorisationServiceTest {
 
 
         Properties result = (Properties) refreshMethod.invoke(authServiceInstance, receivedJson);
+        System.out.println("testRefresh:");
         System.out.println(result);
 
     }
@@ -161,8 +217,10 @@ public class AuthorisationServiceTest {
         Method createSubscription = authServiceClass.getDeclaredMethod("createSubscription", String.class);
         createSubscription.setAccessible(true);
 
-        Properties result = (Properties) createSubscription.invoke(authServiceInstance, receivedJson);
+        String result = ((Properties) createSubscription.invoke(authServiceInstance, receivedJson)).toString();
+        System.out.println("testCreateSubscription:");
         System.out.println(result);
+        assertEquals("{response={\"status\":200,\"statusText\":\"Ok\",\"message\":\"Successfully created subscription\"}, statusCode=200}", result);
 
     }
 }

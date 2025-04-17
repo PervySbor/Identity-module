@@ -3,6 +3,8 @@ module identity.module {
     requires jakarta.persistence;
     requires com.zaxxer.hikari;
     requires org.hibernate.orm.core;
+    requires jakarta.servlet;
+    requires java.net.http;
 
     opens identity.module to identity.module.unit;
     opens identity.module.repository to identity.module.unit;

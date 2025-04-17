@@ -29,59 +29,69 @@ public class AuthorisationService {
 
     //TO BE REFACTORED
     //can be used both for user and admin login
-    protected Properties login(String jsonRequest) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
+    protected Properties login(String jsonRequest, String userIp) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
         Properties result = new Properties();
         List<String> values;
-        String login, userIp, hashedPassword;
+        String login, hashedPassword;
         User user;
         try {
-            values = JsonManager.unwrapPairs(List.of("login", "password", "user_ip"), jsonRequest);
+            values = JsonManager.unwrapPairs(List.of("login", "password"), jsonRequest);
             login = values.get(0);
             hashedPassword = values.get(1);
-            userIp = values.get(2);
 
             user = this.repository.getUserByLogin(login);
             if(user == null){
                 String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
                 result.setProperty("error", error);
+                result.setProperty("statusCode", "404");
             } else {
                 //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
                 if(!hashedPassword.equals(user.getPasswordHash())) {
                     String error = JsonManager.getResponseMessage(403, "Unauthorized", "Incorrect password");
                     result.setProperty("error", error);
+                    result.setProperty("statusCode", "403");
                 } else {
                     String refreshToken = this.sessionManager.generateNewRefreshToken();
                     String refreshTokenHash = SecurityManager.hashString(refreshToken);
                     String jwt = this.sessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                     result.setProperty("refresh_token", refreshToken);
                     result.setProperty("jwt", jwt);
+                    result.setProperty("statusCode", "200");
                 }
             }
         } catch (FailedToHashException | ParsingUserRequestException | NonUniqueUserException |
                  JsonProcessingException | NoSuchAlgorithmException |
                  InvalidKeyException | UserNotFoundException e){
-            LogManager.logException(e, Level.FINE);
-            return null;  //in case message is corrupted
+            LogManager.logException(e, Level.SEVERE);
+            try {
+                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "409");
+            } catch (JsonProcessingException ex){
+                LogManager.logException(ex, Level.SEVERE);
+            }
         }
         return result;
-    }
+    }//success: refresh, jwt, statusCode
 
+    //UPDATE NEEDED: will fetch user_ip from HttpRequest in Servlet and pass it here as an argument
     //can be used both for user and admin registration
-    protected Properties register(String jsonRequest, Roles role) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
+    protected Properties registerUser(String jsonRequest, String userIp) { //required json: { "login": "<login>", "password": "<hashed_password>"}
         Properties result = new Properties();
         List<String> values;
-        String login, hashedPassword, userIp;
+        String login, hashedPassword;
         boolean loginTaken;
         try {
-            values = JsonManager.unwrapPairs(List.of("login", "password", "user_ip"), jsonRequest);
+            Roles role = Roles.createRoles("NEW_USER");
+            values = JsonManager.unwrapPairs(List.of("login", "password"), jsonRequest);
             login = values.get(0);
             hashedPassword = values.get(1);
-            userIp = values.get(2);
 
             loginTaken = (this.repository).isLoginTaken(login);
             if(loginTaken){
                 String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
                 result.setProperty("error", error);
+                result.setProperty("statusCode", "409");
             } else {
                 //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
                 User newUser = new User(login, hashedPassword, role);
@@ -91,15 +101,61 @@ public class AuthorisationService {
                 String jwt = this.sessionManager.createNewSession(newUser, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
                 result.setProperty("refresh_token", refreshToken);
                 result.setProperty("jwt", jwt);
+                result.setProperty("statusCode", "200");
             }
         } catch (ParsingUserRequestException | NonUniqueUserException | JsonProcessingException |
-                 FailedToHashException | NoSuchAlgorithmException |
-                 InvalidKeyException | UserNotFoundException e){
-            LogManager.logException(e, Level.FINE);
-            return null;  //in case message is corrupted
+                 FailedToHashException | NoSuchAlgorithmException | InvalidKeyException | UserNotFoundException |
+                 IncorrectRolesType e){
+            LogManager.logException(e, Level.SEVERE);
+            try {
+                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "500");
+            } catch (JsonProcessingException ex){
+                LogManager.logException(ex, Level.SEVERE);
+            }
         }
         return result;
-    }
+    }//success: refresh, jwt, statusCode
+
+
+    protected Properties registerAdmin(String jsonRequest) { //required json: { "login": "<login>", "password": "<hashed_password>"}
+        Properties result = new Properties();
+        List<String> values;
+        String login, hashedPassword;
+        boolean loginTaken;
+        try {
+            Roles role = Roles.createRoles("ADMIN");
+            values = JsonManager.unwrapPairs(List.of("login", "password"), jsonRequest);
+            login = values.get(0);
+            hashedPassword = values.get(1);
+
+            loginTaken = (this.repository).isLoginTaken(login);
+            if(loginTaken){
+                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "409");
+            } else {
+                //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
+                User newUser = new User(login, hashedPassword, role);
+                this.repository.saveUser(newUser);
+                String response = JsonManager.getResponseMessage(200, "Ok", "Successfully created admin account");
+                result.setProperty("response", response);
+                result.setProperty("statusCode", "200");
+            }
+        } catch (ParsingUserRequestException | NonUniqueUserException | JsonProcessingException |
+                 IncorrectRolesType e){
+            LogManager.logException(e, Level.SEVERE);
+            try {
+                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "500");
+            } catch (JsonProcessingException ex){
+                LogManager.logException(ex, Level.SEVERE);
+            }
+        }
+        return result;
+    }//success: response, statusCode
 
 
     protected Properties refresh(String json){ //required json: { "refresh_token": "9bc17b5d-fcae-4c4f-9fab-09d82d64db4e"} //refresh token is not hashed
@@ -111,17 +167,24 @@ public class AuthorisationService {
             if (session == null){
                 String error = JsonManager.getResponseMessage(404, "Not found", "Session with this refresh token doesn't exist");
                 result.setProperty("error", error);
+                result.setProperty("statusCode", "404");
             } else {
                 String jwt = sessionManager.createJWT(session.getUser().getRole(), session.getSessionId());
                 result.setProperty("jwt", jwt);
             }
         } catch (ParsingUserRequestException | FailedToHashException | JsonProcessingException |
                  NoSuchAlgorithmException | InvalidKeyException e) {
-            LogManager.logException(e, Level.FINE);
-            return null;  //in case message is corrupted
+            LogManager.logException(e, Level.SEVERE);
+            try {
+                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "500");
+            } catch (JsonProcessingException ex){
+                LogManager.logException(ex, Level.SEVERE);
+            }
         }
         return result;
-    }
+    }//success: jwt, statusCode
 
     protected Properties createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
         Properties result = new Properties();
@@ -141,17 +204,44 @@ public class AuthorisationService {
                     String error = JsonManager.getResponseMessage(409, "Conflict",
                             "User is already subscribed");
                     result.setProperty("error", error);
+                    result.setProperty("statusCode", "409");
                 } else {
                     Subscription newSubscription = new Subscription(session.getUser(), subscriptionType);
                     this.repository.saveSubscription(newSubscription);
                     String response = JsonManager.getResponseMessage(200, "Ok", "Successfully created subscription");
                     result.setProperty("response", response);
+                    result.setProperty("statusCode", "200");
                 }
             }
 
         } catch (ParsingUserRequestException | IncorrectSubscriptionType | JsonProcessingException e) {
-            LogManager.logException(e, Level.FINE);
-            return null;  //in case message is corrupted
+            LogManager.logException(e, Level.SEVERE);
+            try {
+                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "500");
+            } catch (JsonProcessingException ex){
+                LogManager.logException(ex, Level.SEVERE);
+            }
+        }
+        return result;
+    }//success: response, statusCode
+
+    protected Properties returnError(int statusCode, String shortErrorMsg, String message){
+        Properties result = new Properties();
+        try {
+            String error = JsonManager.getResponseMessage(statusCode, shortErrorMsg, message);
+            result.setProperty("error", error);
+            result.setProperty("statusCode", "404");
+        } catch (JsonProcessingException e) {
+            LogManager.logException(e, Level.SEVERE);
+            try {
+                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                result.setProperty("error", error);
+                result.setProperty("statusCode", "500");
+            } catch (JsonProcessingException ex){
+                LogManager.logException(ex, Level.SEVERE);
+            }
         }
         return result;
     }

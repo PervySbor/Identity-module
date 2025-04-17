@@ -54,7 +54,7 @@ public class JsonManager {
         return mapper.writeValueAsString(payload);
     }
 
-    protected static String serialize(Object obj)
+    public static String serialize(Object obj)
         throws com.fasterxml.jackson.core.JsonProcessingException{
         return mapper.writeValueAsString(obj);
     }
