@@ -108,6 +108,25 @@ public class RepositoryTest {
 
     }
 
+    @Test
+    public void testSaveUser() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
+        Class<?> rolesEnum = Class.forName("identity.module.enums.Roles");
+        Object newUserRole = Enum.class.getMethod("valueOf", Class.class, String.class)
+                .invoke(null, rolesEnum, "NEW_USER");
+
+        Class<?> userClass = Class.forName("identity.module.repository.entities.User");
+        Constructor<?> userConstructor = userClass.getConstructor(String.class, String.class, rolesEnum);
+        Object userInstance1 = userConstructor.newInstance("login_1", "V7XPqTkux3VORMqcuGOoLQ==", newUserRole);
+
+        Class<?> repositoryClass = Class.forName("identity.module.repository.Repository");
+        Object repositoryInstance = repositoryClass.getConstructor().newInstance();
+        Method saveUser = repositoryClass.getMethod("saveUser", userClass);
+
+        UUID userId = (UUID) saveUser.invoke(repositoryInstance, userInstance1);
+
+        System.out.println("received UUID: <" + userId + ">");
+    }
+
     //WARNING!!! uses getUserByLogin() itself
     @After
     public void deleteEntitiesAfterTest() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {

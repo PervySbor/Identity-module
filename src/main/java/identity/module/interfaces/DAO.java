@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+// ковариантность, контрвариантность инвариантность
 public interface DAO<T> {
 
     UUID save(T obj);

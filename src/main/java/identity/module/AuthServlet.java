@@ -5,6 +5,11 @@ import identity.module.utils.JsonManager;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+//import jakarta.servlet.http.HttpServlet;
+//import jakarta.servlet.http.HttpServletRequest;
+//import jakarta.servlet.http.HttpServletResponse;
+
+
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -20,10 +25,13 @@ public class AuthServlet extends HttpServlet {
     public void doPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse){
         String path = httpRequest.getServletPath();
         switch(path){
-            case "/user/login": case "/admin/login": pathHandler(httpRequest, httpResponse, authService::login, List.of("refresh", "jwt"));
-            case "/user/register": pathHandler(httpRequest, httpResponse, authService::registerUser, List.of("jwt", "refresh"));
-            case "/admin/register": pathHandler(httpRequest, httpResponse, authService::registerAdmin, List.of("response"));
-            case "/refresh": pathHandler(httpRequest, httpResponse, authService::refresh, List.of("jwt"));
+            case "/user/login": case "/admin/login": pathHandler(httpRequest, httpResponse, authService::login, List.of("refresh", "jwt")); break;
+            case "/user/register": pathHandler(httpRequest, httpResponse, authService::registerUser, List.of("jwt", "refresh")); break;
+            case "/admin/register": pathHandler(httpRequest, httpResponse, authService::registerAdmin, List.of("response")); break;
+            case "/refresh": pathHandler(httpRequest, httpResponse, authService::refresh, List.of("jwt")); break;
+            case "/ping": returnError(httpResponse, 418, "I'm a teapot", "Don't bother me"); break;
+            default: returnError(httpResponse, 404, "Not found", "Incorrect path"); break;
+
         }
     }
 
@@ -32,7 +40,7 @@ public class AuthServlet extends HttpServlet {
         Properties result;
         Map<String,String> body = new HashMap<>();
         if(!httpRequest.getHeader("Content-Type").equals("application/json")){
-            returnError(httpResponse,"Incorrect content type");
+            returnError(httpResponse,422, "Unprocessable Content","Incorrect content type");
         }else {
             try{
                 String jsonBody = httpRequest.getReader().readLine(); //as the whole json must be on a single line, according to the HTTP/1.1
@@ -62,9 +70,9 @@ public class AuthServlet extends HttpServlet {
         Map<String,String> body = new HashMap<>();
         String userIp = httpRequest.getHeader("X-Forwarded-For");
         if(!httpRequest.getHeader("Content-Type").equals("application/json")){
-            returnError(httpResponse,"Incorrect content type");
+            returnError(httpResponse,422, "Unprocessable Content","Incorrect content type");
         } else if(userIp == null){
-            returnError(httpResponse,"Failed to fetch user ip");
+            returnError(httpResponse,422, "Unprocessable Content","Failed to fetch user ip");
         } else {
             try{
                 String jsonBody = httpRequest.getReader().readLine(); //as the whole json must be on a single line, according to the HTTP/1.1
@@ -89,13 +97,13 @@ public class AuthServlet extends HttpServlet {
     }
 
 
-    private void returnError(HttpServletResponse httpResponse, String message){
+    private void returnError(HttpServletResponse httpResponse, int statusCode, String shortErrorMsg, String message){
         httpResponse.setHeader("Content-Type","application/json");
-        Properties result = authService.returnError(422, "Unprocessable Content", message);
+        Properties result = authService.returnError(statusCode, shortErrorMsg, message);
         try {
             PrintWriter writer = httpResponse.getWriter();
             writer.write(result.getProperty("error"));
-            httpResponse.setStatus(Integer.parseInt(result.getProperty("statusCode", "500")));
+            httpResponse.setStatus(statusCode);
         } catch(IOException e){
             httpResponse.setStatus(500);
         }
