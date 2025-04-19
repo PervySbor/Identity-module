@@ -29,7 +29,7 @@ public class AuthorisationService {
 
     //TO BE REFACTORED
     //can be used both for user and admin login
-    protected Properties login(String jsonRequest, String userIp) { //required json: { "login": "<login>", "password": "<hashed_password>", "user_ip":  "<not_hashed_ip>"}
+    protected Properties login(String jsonRequest, String userIp) { //required json: { "login": "<login>", "password": "<hashed_password>"}
         Properties result = new Properties();
         List<String> values;
         String login, hashedPassword;
@@ -54,7 +54,7 @@ public class AuthorisationService {
                     String refreshToken = this.sessionManager.generateNewRefreshToken();
                     String refreshTokenHash = SecurityManager.hashString(refreshToken);
                     String jwt = this.sessionManager.createNewSession(user, userIp, refreshTokenHash, user.getRole(), SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
-                    result.setProperty("refresh_token", refreshToken);
+                    result.setProperty("refresh", refreshToken);
                     result.setProperty("jwt", jwt);
                     result.setProperty("statusCode", "200");
                 }
@@ -72,7 +72,7 @@ public class AuthorisationService {
             }
         }
         return result;
-    }//success: refresh, jwt, statusCode
+    }//success: refresh, jwt, statusCode OR error
 
     //UPDATE NEEDED: will fetch user_ip from HttpRequest in Servlet and pass it here as an argument
     //can be used both for user and admin registration
@@ -99,7 +99,7 @@ public class AuthorisationService {
                 String refreshToken = this.sessionManager.generateNewRefreshToken();
                 String refreshTokenHash = SecurityManager.hashString(refreshToken);
                 String jwt = this.sessionManager.createNewSession(newUser, userIp, refreshTokenHash, role, SESSION_LENGTH, MAX_SESSIONS_AMOUNT);
-                result.setProperty("refresh_token", refreshToken);
+                result.setProperty("refresh", refreshToken);
                 result.setProperty("jwt", jwt);
                 result.setProperty("statusCode", "200");
             }
@@ -116,7 +116,7 @@ public class AuthorisationService {
             }
         }
         return result;
-    }//success: refresh, jwt, statusCode
+    }//success: refresh, jwt, statusCode OR error
 
 
     protected Properties registerAdmin(String jsonRequest) { //required json: { "login": "<login>", "password": "<hashed_password>"}
@@ -155,13 +155,13 @@ public class AuthorisationService {
             }
         }
         return result;
-    }//success: response, statusCode
+    }//success: response, statusCode OR error
 
 
     protected Properties refresh(String json){ //required json: { "refresh_token": "9bc17b5d-fcae-4c4f-9fab-09d82d64db4e"} //refresh token is not hashed
         Properties result = new Properties();
         try{
-            String refreshToken = JsonManager.unwrapPairs(List.of("refresh_token"), json).getFirst();
+            String refreshToken = JsonManager.unwrapPairs(List.of("refresh"), json).getFirst();
             String hashedRefreshToken = SecurityManager.hashString(refreshToken);
             Session session = repository.getRelevantSession(hashedRefreshToken);
             if (session == null){
@@ -184,7 +184,7 @@ public class AuthorisationService {
             }
         }
         return result;
-    }//success: jwt, statusCode
+    }//success: jwt, statusCode OR error
 
     protected Properties createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
         Properties result = new Properties();
@@ -225,14 +225,14 @@ public class AuthorisationService {
             }
         }
         return result;
-    }//success: response, statusCode
+    }//success: response, statusCode OR error
 
     protected Properties returnError(int statusCode, String shortErrorMsg, String message){
         Properties result = new Properties();
         try {
             String error = JsonManager.getResponseMessage(statusCode, shortErrorMsg, message);
             result.setProperty("error", error);
-            result.setProperty("statusCode", "404");
+            result.setProperty("statusCode", String.valueOf(statusCode));
         } catch (JsonProcessingException e) {
             LogManager.logException(e, Level.SEVERE);
             try {

@@ -17,4 +17,10 @@
         <url-pattern>/admin/register</url-pattern>
         <url-pattern>/refresh</url-pattern>
     </servlet-mapping>
+
+    <listener>
+        <listener-class>
+            identity.module.ContextListener
+        </listener-class>
+    </listener>
 </web-app>

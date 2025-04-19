@@ -1,7 +1,6 @@
 package identity.module.repository.utils;
 
 import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import identity.module.utils.config.ConfigReader;
 import identity.module.utils.config.ConfigService;
 import jakarta.persistence.SharedCacheMode;
@@ -37,20 +36,7 @@ public class CustomPersistenceUnitInfo implements PersistenceUnitInfo {
 
     @Override
     public DataSource getJtaDataSource() {
-        Properties props = new Properties();
-
-        String DB_URL = ConfigReader.getStringValue("DB_URL");
-        String DB_LOGIN = ConfigReader.getStringValue("DB_LOGIN");
-        String DB_PASSWORD = ConfigReader.getStringValue("DB_PASSWORD");
-
-        props.setProperty("jdbcUrl", DB_URL);
-        props.setProperty("dataSource.user", DB_LOGIN);
-        props.setProperty("dataSource.password", DB_PASSWORD);
-        props.put("dataSource.logWriter", new PrintWriter(System.out));
-
-        HikariConfig config = new HikariConfig(props);
-        HikariDataSource dataSource = new HikariDataSource(config);
-        return dataSource;
+        return MyHikariDataSource.getDataSource();
     }
 
     @Override

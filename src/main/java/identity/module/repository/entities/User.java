@@ -10,23 +10,21 @@ import static jakarta.persistence.EnumType.STRING;
 
 @Entity
 @Table(name="users")
+//@Access(AccessType.PROPERTY)
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name="user_id")
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.UUID)
+//    @Column(name="user_id")
     private UUID userId;
 
-    @Column(name="login")
+//    @Column(name="login")
     private String login;
 
-    @Column(name="password_hash")
+//    @Column(name="password_hash")
     private String passwordHash;
 
-    //@OneToOne
-    //as Role is deprecated
-    //@JoinColumn(name="role_id")
-    @Enumerated(STRING)
-    @Column(name="role")
+//    @Enumerated(STRING)
+//    @Column(name="role")
     private Roles role;
 
 
@@ -65,18 +63,25 @@ public class User {
         return sb.toString();
     }
 
+    @Enumerated(STRING)
+    @Column(name="role")
     public Roles getRole() {
         return role;
     }
 
+    @Column(name="login")
     public String getLogin() {
         return login;
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name="user_id")
     public UUID getUserId() {
         return userId;
     }
 
+    @Column(name="password_hash")
     public String getPasswordHash() {
         return passwordHash;
     }

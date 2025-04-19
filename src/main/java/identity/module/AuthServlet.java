@@ -25,10 +25,10 @@ public class AuthServlet extends HttpServlet {
     public void doPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse){
         String path = httpRequest.getServletPath();
         switch(path){
-            case "/user/login": case "/admin/login": pathHandler(httpRequest, httpResponse, authService::login, List.of("refresh", "jwt")); break;
-            case "/user/register": pathHandler(httpRequest, httpResponse, authService::registerUser, List.of("jwt", "refresh")); break;
-            case "/admin/register": pathHandler(httpRequest, httpResponse, authService::registerAdmin, List.of("response")); break;
-            case "/refresh": pathHandler(httpRequest, httpResponse, authService::refresh, List.of("jwt")); break;
+            case "/user/login": case "/admin/login": pathHandler(httpRequest, httpResponse, authService::login, List.of("refresh", "jwt", "error")); break;
+            case "/user/register": pathHandler(httpRequest, httpResponse, authService::registerUser, List.of("jwt", "refresh", "error")); break;
+            case "/admin/register": pathHandler(httpRequest, httpResponse, authService::registerAdmin, List.of("response", "error")); break;
+            case "/refresh": pathHandler(httpRequest, httpResponse, authService::refresh, List.of("jwt", "error")); break;
             case "/ping": returnError(httpResponse, 418, "I'm a teapot", "Don't bother me"); break;
             default: returnError(httpResponse, 404, "Not found", "Incorrect path"); break;
 
@@ -43,21 +43,20 @@ public class AuthServlet extends HttpServlet {
             returnError(httpResponse,422, "Unprocessable Content","Incorrect content type");
         }else {
             try{
+                PrintWriter writer = httpResponse.getWriter();
                 String jsonBody = httpRequest.getReader().readLine(); //as the whole json must be on a single line, according to the HTTP/1.1
                 result = serviceMethod.apply(jsonBody);
                 //special properties
                 httpResponse.setHeader("Content-Type","application/json");
                 httpResponse.setStatus(Integer.parseInt(result.getProperty("statusCode", "500")));
                 //response body formation
-                for(String property : bodyProperties){
-                    if(result.getProperty(property) != null){
+                for (String property : bodyProperties) {
+                    if (result.getProperty(property) != null) {
                         body.put(property, result.getProperty(property));
                     }
                 }
                 String bodyString = JsonManager.serialize(body);
-                PrintWriter writer = httpResponse.getWriter();
                 writer.write(bodyString);
-
             } catch(IOException e){
                 httpResponse.setStatus(500);
             }
@@ -75,21 +74,20 @@ public class AuthServlet extends HttpServlet {
             returnError(httpResponse,422, "Unprocessable Content","Failed to fetch user ip");
         } else {
             try{
+                PrintWriter writer = httpResponse.getWriter();
                 String jsonBody = httpRequest.getReader().readLine(); //as the whole json must be on a single line, according to the HTTP/1.1
                 result = serviceMethod.apply(jsonBody, userIp);
                 //special properties
                 httpResponse.setHeader("Content-Type","application/json");
                 httpResponse.setStatus(Integer.parseInt(result.getProperty("statusCode", "500")));
                 //response body formation
-                for(String property : bodyProperties){
-                    if(result.getProperty(property) != null){
+                for (String property : bodyProperties) {
+                    if (result.getProperty(property) != null) {
                         body.put(property, result.getProperty(property));
                     }
                 }
                 String bodyString = JsonManager.serialize(body);
-                PrintWriter writer = httpResponse.getWriter();
                 writer.write(bodyString);
-
             } catch(IOException e){
                 httpResponse.setStatus(500);
             }
@@ -102,7 +100,10 @@ public class AuthServlet extends HttpServlet {
         Properties result = authService.returnError(statusCode, shortErrorMsg, message);
         try {
             PrintWriter writer = httpResponse.getWriter();
-            writer.write(result.getProperty("error"));
+            Map<String, String> toBeSerialized = new HashMap<String,String>();
+            toBeSerialized.put("error", result.getProperty("error"));
+            String serializedError = JsonManager.serialize(toBeSerialized);
+            writer.write(serializedError);
             httpResponse.setStatus(statusCode);
         } catch(IOException e){
             httpResponse.setStatus(500);

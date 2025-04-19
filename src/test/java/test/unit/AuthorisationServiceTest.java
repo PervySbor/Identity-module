@@ -3,6 +3,7 @@ package test.unit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import test.utils.JsonChecker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class AuthorisationServiceTest {
 
@@ -147,9 +148,13 @@ public class AuthorisationServiceTest {
         register.setAccessible(true);
 
         Properties result = (Properties) register.invoke(authServiceInstance, receivedJson, "127.0.0.1");
+
+        assertNotNull(result.getProperty("refresh"));
+        assertNotNull(result.getProperty("jwt"));
+
         System.out.println("testRegister_User_ifValidLogin:");
         System.out.println(result);
-        this.refreshToken = result.getProperty("refresh_token");
+        this.refreshToken = result.getProperty("refresh");
     }
 
     @Test
@@ -186,14 +191,14 @@ public class AuthorisationServiceTest {
         Properties result = (Properties) register.invoke(authServiceInstance, receivedJson);
         System.out.println("testRegister_User_ifValidLogin:");
         System.out.println(result);
-        this.refreshToken = result.getProperty("refresh_token");
+        this.refreshToken = result.getProperty("refresh");
         assertEquals("{response={\"status\":200,\"statusText\":\"Ok\",\"message\":\"Successfully created admin account\"}, statusCode=200}", result.toString());
     }
 
     @Test
     public void testRefresh() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
         testRegister_User_ifValidLogin(); // to get the refresh token for the current DB lifescope //as we delete everything after each test
-        String receivedJson = "{\"refresh_token\":\""+ this.refreshToken +"\"}";
+        String receivedJson = "{\"refresh\":\""+ this.refreshToken +"\"}";
 
         Class<?> authServiceClass = Class.forName("identity.module.AuthorisationService");
         Object authServiceInstance = authServiceClass.getConstructor().newInstance();
