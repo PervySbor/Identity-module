@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.util.logging.Level;
+import java.util.List;
 
 public class ConfigReader {
 
@@ -39,6 +40,16 @@ public class ConfigReader {
         try {
             String json = Files.readString(config);
             return JsonManager.getStringValue(json, property);
+        } catch ( IOException | FailedToReadJsonValueException e) {
+            LogManager.logException(e, Level.CONFIG);
+            throw (RuntimeException) new FatalException("configuration failed").initCause(e);
+        }
+    }
+
+    public static List<String> getListValue(String property){
+        try {
+            String json = Files.readString(config);
+            return JsonManager.getListValue(json, property);
         } catch ( IOException | FailedToReadJsonValueException e) {
             LogManager.logException(e, Level.CONFIG);
             throw (RuntimeException) new FatalException("configuration failed").initCause(e);

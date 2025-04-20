@@ -6,6 +6,7 @@ module identity.module {
     requires jakarta.persistence;
     requires java.net.http;
     requires org.apache.tomcat.embed.core;
+    requires kafka.clients;
 
     opens identity.module to identity.module.test;
     opens identity.module.repository to identity.module.test;

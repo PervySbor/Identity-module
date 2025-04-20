@@ -45,6 +45,77 @@ public class JsonManagerTest {
 
         assertEquals(expectedResult, result);
     }
+
+    @Test(expected= Exception.class)
+    public void testGetStringValue_throwException() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\"}";
+        String searchedProperty = "nonExistingProperty";
+
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        Method getStringValue = jsonManagerClass.getDeclaredMethod("getStringValue", String.class, String.class);
+        getStringValue.setAccessible(true);
+
+        try {
+            getStringValue.invoke(null, jsonString, searchedProperty);
+        } catch (Exception e){
+            System.out.println("Expecting FailedToReadJsonValueException:");
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Test
+    public void testGetListValue() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\", \"sessions\": [\"session-1\", \"session-2\"]}";
+        String searchedProperty = "sessions";
+        List<String> expectedResult = List.of("session-1", "session-2");
+
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        Method getListValue = jsonManagerClass.getDeclaredMethod("getListValue", String.class, String.class);
+        getListValue.setAccessible(true);
+
+        List<String> result = (List<String>) getListValue.invoke(null, jsonString, searchedProperty);
+
+        assertEquals(result, expectedResult);
+    }
+
+    @Test(expected= Exception.class)
+    public void testGetListValue_throwException() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\"}";
+        String searchedProperty = "nonExistingProperty";
+
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        Method getStringValue = jsonManagerClass.getDeclaredMethod("getListValue", String.class, String.class);
+        getStringValue.setAccessible(true);
+
+        try {
+            getStringValue.invoke(null, jsonString, searchedProperty);
+        } catch (Exception e){
+            System.out.println("Expecting FailedToReadJsonValueException:");
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Test(expected= Exception.class)
+    public void testGetListValue_throwExceptionNonArray() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String jsonString = "{\"user\": \"usr1\", \"password\": \"passwd\"}";
+        String searchedProperty = "password";
+
+        Class<?> jsonManagerClass = Class.forName("identity.module.utils.JsonManager");
+        Method getStringValue = jsonManagerClass.getDeclaredMethod("getListValue", String.class, String.class);
+        getStringValue.setAccessible(true);
+
+        try {
+            getStringValue.invoke(null, jsonString, searchedProperty);
+        } catch (Exception e){
+            System.out.println("Expecting FailedToReadJsonValueException:");
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+
     @Test
     public void testGetErrorMessage() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         int statusCode = 409;

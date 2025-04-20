@@ -36,7 +36,10 @@ public class LogManager {
         } catch (com.fasterxml.jackson.core.JsonProcessingException e){
             logger.log(Level.SEVERE, "Failed to serialize LogMessage: ", e);
         }
-        //assuming call to KafkaClient: sendLog(String errorJson)
+        //call to KafkaClient: sendLog(String errorJson):
+
+        KafkaProducerManager.send("logs_topic", 1, "key_1", jsonLogMessage);
         return jsonLogMessage;
     }
+
 }

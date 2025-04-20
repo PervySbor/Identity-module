@@ -10,7 +10,7 @@ public class JsonChecker {
     public static boolean fieldExists(String fieldName, String json) throws JsonProcessingException {
 
         JsonNode node = mapper.readValue(json, JsonNode.class);
-        return !node.get(fieldName).isNull();
+        return !(node.get(fieldName) == null);
     }
 
     public static String get(String fieldName, String json) throws JsonProcessingException {
