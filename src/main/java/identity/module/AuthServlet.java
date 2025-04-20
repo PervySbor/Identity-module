@@ -2,6 +2,8 @@ package identity.module;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import identity.module.utils.JsonManager;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,7 +21,16 @@ import java.util.function.Function;
 
 public class AuthServlet extends HttpServlet {
 
-    private final AuthorisationService authService = new AuthorisationService();
+    private  AuthorisationService authService;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        authService = (AuthorisationService) getServletContext().getAttribute("AuthorisationService");
+        if (authService == null){
+            throw new IllegalStateException("failed to fetch AuthorisationService");
+        }
+    }
 
     @Override
     public void doPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse){

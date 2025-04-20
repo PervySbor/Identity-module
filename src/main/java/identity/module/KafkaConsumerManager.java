@@ -1,7 +1,6 @@
-package identity.module.kafka.clients;
+package identity.module;
 
-import identity.module.utils.KafkaProducerManager;
-import identity.module.utils.config.ConfigReader;
+import jakarta.servlet.ServletContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -14,13 +13,16 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+//Controller
 //runs in a special thread, manages worker threads for processing received messages
 public class KafkaConsumerManager implements Runnable{
 
-    private  ExecutorService ex;
-    private KafkaConsumer<String, String> consumer;
+    private final ExecutorService ex;
+    private final KafkaConsumer<String, String> consumer;
+    private ServletContext context;
 
-    public KafkaConsumerManager(int maxAmtOfThreads, String bootServers, String clientId, String consumerGroupName, List<String> topics){
+
+    public KafkaConsumerManager(int maxAmtOfThreads, String bootServers, String clientId, String consumerGroupName, List<String> topics, ServletContext context){
         ex = Executors.newFixedThreadPool(maxAmtOfThreads);
 
         Properties props = new Properties();
@@ -36,12 +38,16 @@ public class KafkaConsumerManager implements Runnable{
     }
 
     public void run(){
-        while (true){
+        do {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-            for(ConsumerRecord<String, String> record : records){
-
+            for (ConsumerRecord<String, String> record : records) {
+                //{ "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
+                ConsumerWorker workerRunnable = new ConsumerWorker(context, record.value());
+                ex.execute(workerRunnable);
             }
-        }
+        } while (!Thread.currentThread().isInterrupted());
+        ex.close();
+        consumer.close();
     }
 
 
