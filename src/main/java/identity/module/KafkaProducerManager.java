@@ -1,11 +1,9 @@
-package identity.module.utils;
+package identity.module;
 
-import identity.module.utils.config.ConfigReader;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 

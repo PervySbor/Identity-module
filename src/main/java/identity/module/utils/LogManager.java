@@ -1,5 +1,6 @@
 package identity.module.utils;
 
+import identity.module.KafkaProducerManager;
 import identity.module.models.LogMessage;
 
 import java.sql.Timestamp;

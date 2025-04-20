@@ -222,10 +222,10 @@ public class AuthorisationServiceTest {
         Method createSubscription = authServiceClass.getDeclaredMethod("createSubscription", String.class);
         createSubscription.setAccessible(true);
 
-        String result = ((Properties) createSubscription.invoke(authServiceInstance, receivedJson)).toString();
+        String result = (String) createSubscription.invoke(authServiceInstance, receivedJson);
         System.out.println("testCreateSubscription:");
         System.out.println(result);
-        assertEquals("{response={\"status\":200,\"statusText\":\"Ok\",\"message\":\"Successfully created subscription\"}, statusCode=200}", result);
+        assertEquals("{\"status\":200,\"statusText\":\"Ok\",\"message\":\"Successfully created subscription\"}", result);
 
     }
 }

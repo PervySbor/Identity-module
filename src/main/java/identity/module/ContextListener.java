@@ -1,7 +1,6 @@
 package identity.module;
 
 import identity.module.repository.utils.MyHikariDataSource;
-import identity.module.utils.KafkaProducerManager;
 import identity.module.utils.config.ConfigReader;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;

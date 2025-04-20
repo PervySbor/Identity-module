@@ -45,6 +45,7 @@ public class KafkaConsumerManager implements Runnable{
                 ConsumerWorker workerRunnable = new ConsumerWorker(context, record.value());
                 ex.execute(workerRunnable);
             }
+            consumer.commitAsync();
         } while (!Thread.currentThread().isInterrupted());
         ex.close();
         consumer.close();

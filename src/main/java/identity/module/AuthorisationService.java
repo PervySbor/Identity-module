@@ -186,42 +186,36 @@ public class AuthorisationService {
         return result;
     }//success: jwt, statusCode OR error
 
-    protected Properties createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
-        Properties result = new Properties();
+    protected String createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
+        String result;
         try {
             List<String> values = JsonManager.unwrapPairs(List.of("session_id", "subscription_type"), json);
             UUID sessionId = UUID.fromString(values.get(0));
             SubscriptionType subscriptionType = SubscriptionType.createSubscriptionType(values.get(1));
             Session session = this.repository.findSession(sessionId);
             if (session == null){
-                String error = JsonManager.getResponseMessage(403, "Unauthorized",
+                result = JsonManager.getResponseMessage(403, "Unauthorized",
                         "Session with this id doesn't exist. Most likely something wrong with identity module logic");
-                result.setProperty("error", error);
                 LogManager.logException(new SessionNotFoundException("failed to find the session of user, who purchased the subscription"), Level.SEVERE);
             } else {
                 boolean alreadyHasSubscription = this.repository.hasSubscription(session.getUser());
                 if(alreadyHasSubscription){
-                    String error = JsonManager.getResponseMessage(409, "Conflict",
+                    result = JsonManager.getResponseMessage(409, "Conflict",
                             "User is already subscribed");
-                    result.setProperty("error", error);
-                    result.setProperty("statusCode", "409");
                 } else {
                     Subscription newSubscription = new Subscription(session.getUser(), subscriptionType);
                     this.repository.saveSubscription(newSubscription);
-                    String response = JsonManager.getResponseMessage(200, "Ok", "Successfully created subscription");
-                    result.setProperty("response", response);
-                    result.setProperty("statusCode", "200");
+                    result = JsonManager.getResponseMessage(200, "Ok", "Successfully created subscription");
                 }
             }
 
         } catch (ParsingUserRequestException | IncorrectSubscriptionType | JsonProcessingException e) {
             LogManager.logException(e, Level.SEVERE);
             try {
-                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
-                result.setProperty("error", error);
-                result.setProperty("statusCode", "500");
+                result = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
             } catch (JsonProcessingException ex){
                 LogManager.logException(ex, Level.SEVERE);
+                result = "";
             }
         }
         return result;
