@@ -1,5 +1,6 @@
 package identity.module;
 
+import identity.module.kafka.clients.KafkaConsumerManager;
 import identity.module.repository.utils.MyHikariDataSource;
 import identity.module.utils.KafkaProducerManager;
 import identity.module.utils.config.ConfigReader;
@@ -22,7 +23,14 @@ public class ContextListener implements ServletContextListener {
         String bootServersString = String.join(",", bootServers);
         String clientId = ConfigReader.getStringValue("CONTAINER_NAME");
 
-        KafkaProducerManager.init(bootServersString, clientId);
+        KafkaProducerManager.init(bootServersString, clientId + "-producer");
+
+        int maxAmtOfThreads = Integer.parseInt(ConfigReader.getStringValue("CONSUMER_THREADS_AMT"));
+        String consumerGroupName = ConfigReader.getStringValue("CONSUMER_GROUP_NAME");
+        List<String> topicsToRead = ConfigReader.getListValue("TOPICS_TO_READ_FROM");
+
+        KafkaConsumerManager consumerManager = new KafkaConsumerManager(maxAmtOfThreads, bootServersString, clientId + "-consumer", consumerGroupName, topicsToRead);
+
     }
 
     @Override
