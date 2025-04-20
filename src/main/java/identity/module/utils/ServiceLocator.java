@@ -3,6 +3,7 @@ package identity.module.utils;
 
 import jakarta.servlet.ServletContext;
 
+@Deprecated
 public class ServiceLocator {
     private static ServletContext ctx;
 
