@@ -30,7 +30,7 @@ public class ContextListener implements ServletContextListener {
 
         int maxAmtOfThreads = Integer.parseInt(ConfigReader.getStringValue("CONSUMER_THREADS_AMT"));
         String consumerGroupName = ConfigReader.getStringValue("CONSUMER_GROUP_NAME");
-        List<String> topicsToRead = ConfigReader.getListValue("TOPICS_TO_READ_FROM");
+        List<String> topicsToRead = ConfigReader.getListValue("CREATE_SUB_TOPICS");
 
         KafkaConsumerManager consumerManager =
                 new KafkaConsumerManager(maxAmtOfThreads, bootServersString, clientId + "-consumer", consumerGroupName, topicsToRead, ctx);

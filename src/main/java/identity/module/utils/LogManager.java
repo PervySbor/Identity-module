@@ -2,6 +2,7 @@ package identity.module.utils;
 
 import identity.module.KafkaProducerManager;
 import identity.module.models.LogMessage;
+import identity.module.utils.config.ConfigReader;
 
 import java.sql.Timestamp;
 import java.util.logging.ConsoleHandler;
@@ -9,13 +10,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogManager {
-    static final Logger logger = Logger.getLogger("myLogger");
+    private static final Logger logger = Logger.getLogger("myLogger");
+    private static final String logTopicName;
+    private static final String key;
+    private static final int partitionNumber;
 
      static {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         logger.addHandler(handler);
         logger.setLevel(Level.ALL);
+        logTopicName = ConfigReader.getStringValue("LOG_TOPIC");
+        key = ConfigReader.getStringValue("LOG_KEY");
+        partitionNumber = Integer.parseInt(ConfigReader.getStringValue("LOG_PARTITION_NUM"));
     }
 
     public static String logException(Exception exception, Level level){
@@ -39,7 +46,7 @@ public class LogManager {
         }
         //call to KafkaClient: sendLog(String errorJson):
 
-        KafkaProducerManager.send("logs_topic", 1, "key_1", jsonLogMessage);
+        KafkaProducerManager.send(logTopicName, partitionNumber, key, jsonLogMessage);
         return jsonLogMessage;
     }
 

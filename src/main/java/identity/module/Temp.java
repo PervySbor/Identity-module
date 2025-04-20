@@ -1,12 +1,44 @@
 package identity.module;
 
+import org.apache.catalina.Context;
+import org.apache.catalina.Host;
+import org.apache.catalina.WebResourceRoot;
+import org.apache.catalina.loader.WebappLoader;
+import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.webresources.DirResourceSet;
+import org.apache.catalina.webresources.StandardRoot;
+
+import java.io.File;
+
 public class Temp {
     //temporary endpoint to test AuthorisationService
     public static void main(String[] args) throws Exception{
-        AuthorisationService authService = new AuthorisationService();
-        String json = "{ \"login\": \"valid_login\", \"password\": \"V7XPqTkux3VORMqcuGOoLQ==\"}";
-        System.out.println(authService.registerUser(json, "NEW_USER"));
-        System.out.println(authService.login(json, "127.0.0.1"));
+        Tomcat tomcat = new Tomcat();
 
+        tomcat.setPort(8080);
+        tomcat.getConnector();
+        tomcat.setBaseDir("tomcat-base-dir");
+
+        Host host = tomcat.getHost();
+        String webAppLocation = new File("src/main/webapp/").getAbsolutePath();
+
+        Context ctx = tomcat.addWebapp(host, "/myApp", webAppLocation);
+
+        File classesDir = new File("target/classes");
+        WebResourceRoot resources = new StandardRoot(ctx);
+        resources.addPreResources(new DirResourceSet(
+                resources,
+                "/WEB-INF/classes",
+                classesDir.getAbsolutePath(),
+                "/"
+        ));
+        ctx.setResources(resources);
+
+        WebappLoader webappLoader = new WebappLoader(/*Thread.currentThread().getContextClassLoader()*/);
+        webappLoader.setDelegate(true);  // аналог <Loader delegate="true"/>
+        ctx.setLoader(webappLoader);
+
+
+        tomcat.start();
     }
 }
