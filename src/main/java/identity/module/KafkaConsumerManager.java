@@ -4,7 +4,8 @@ import jakarta.servlet.ServletContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+
 
 
 import java.time.Duration;
@@ -19,19 +20,20 @@ public class KafkaConsumerManager implements Runnable{
 
     private final ExecutorService ex;
     private final KafkaConsumer<String, String> consumer;
-    private ServletContext context;
+    private final ServletContext context;
 
 
     public KafkaConsumerManager(int maxAmtOfThreads, String bootServers, String clientId, String consumerGroupName, List<String> topics, ServletContext context){
         ex = Executors.newFixedThreadPool(maxAmtOfThreads);
+        this.context = context;
 
         Properties props = new Properties();
         props.setProperty("bootstrap.servers", bootServers);
         props.setProperty("group.id", consumerGroupName);
         props.setProperty("client.id", clientId);
         props.setProperty("enable.auto.commit", "false");
-        props.setProperty("key.deserializer", StringSerializer.class.getCanonicalName());
-        props.setProperty("value.deserializer", StringSerializer.class.getCanonicalName());
+        props.setProperty("key.deserializer", StringDeserializer.class.getCanonicalName());
+        props.setProperty("value.deserializer", StringDeserializer.class.getCanonicalName());
         consumer = new KafkaConsumer<>(props);
 
         consumer.subscribe(topics);
@@ -40,12 +42,14 @@ public class KafkaConsumerManager implements Runnable{
     public void run(){
         do {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-            for (ConsumerRecord<String, String> record : records) {
-                //{ "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
-                ConsumerWorker workerRunnable = new ConsumerWorker(context, record.value());
-                ex.execute(workerRunnable);
+            if(!records.isEmpty()) {
+                for (ConsumerRecord<String, String> record : records) {
+                    //{ "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
+                    ConsumerWorker workerRunnable = new ConsumerWorker(context, record.value());
+                    ex.execute(workerRunnable);
+                }
+                consumer.commitAsync();
             }
-            consumer.commitAsync();
         } while (!Thread.currentThread().isInterrupted());
         ex.close();
         consumer.close();
