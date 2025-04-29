@@ -16,6 +16,7 @@ import identity.module.utils.config.ConfigReader;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -188,38 +189,61 @@ public class AuthorisationService {
 
     protected String createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "tx_hash": "001", "subscription_type": "TRIAL"}
         String result;
+        UUID sessionId;
+        SubscriptionType subscriptionType;
+        String txHash;
         try {
-            List<String> values = JsonManager.unwrapPairs(List.of("session_id", "subscription_type"), json);
-            UUID sessionId = UUID.fromString(values.get(0));
-            SubscriptionType subscriptionType = SubscriptionType.createSubscriptionType(values.get(1));
+            List<String> values = JsonManager.unwrapPairs(List.of("session_id", "subscription_type", "tx_hash"), json);
+            sessionId = UUID.fromString(values.get(0));
+            subscriptionType = SubscriptionType.createSubscriptionType(values.get(1));
+            txHash = values.get(2);
+        } catch (IncorrectSubscriptionType | ParsingUserRequestException e) {
+            try {
+                result = JsonManager.serialize(Map.of("code", "422", "status", "Unprocessable Content",
+                        "message", "Failed to deserialize json request (body)"));
+            } catch (JsonProcessingException ex){
+                System.out.println("magic");
+                result = "";
+            }
+            return result;
+        }
+        try {
             Session session = this.repository.findSession(sessionId);
             if (session == null){
-                result = JsonManager.getResponseMessage(403, "Unauthorized",
-                        "Session with this id doesn't exist. Most likely something wrong with identity module logic");
+//                result = JsonManager.getResponseMessage(403, "Unauthorized",
+//                        "Session with this id doesn't exist. Most likely something wrong with identity module logic");
+                result = JsonManager.serialize(Map.of("code", "403", "status", "Unauthorized",
+                        "message", "Session with this id doesn't exist. Most likely something wrong with identity module logic", "tx_hash", txHash));
                 LogManager.logException(new SessionNotFoundException("failed to find the session of user, who purchased the subscription"), Level.SEVERE);
             } else {
                 boolean alreadyHasSubscription = this.repository.hasSubscription(session.getUser());
                 if(alreadyHasSubscription){
-                    result = JsonManager.getResponseMessage(409, "Conflict",
-                            "User is already subscribed");
+//                    result = JsonManager.getResponseMessage(409, "Conflict",
+//                            "User is already subscribed");
+                    result = JsonManager.serialize(Map.of("code", "409", "status", "Conflict",
+                            "message", "User is already subscribed", "tx_hash", txHash));
                 } else {
                     Subscription newSubscription = new Subscription(session.getUser(), subscriptionType);
                     this.repository.saveSubscription(newSubscription);
-                    result = JsonManager.getResponseMessage(200, "Ok", "Successfully created subscription");
+                    //result = JsonManager.getResponseMessage(200, "Ok", "Successfully created subscription");
+                    result = JsonManager.serialize(Map.of("code", "200", "status", "Ok",
+                            "message", "Successfully created subscription", "tx_hash", txHash));
                 }
             }
 
-        } catch (ParsingUserRequestException | IncorrectSubscriptionType | JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             LogManager.logException(e, Level.SEVERE);
             try {
-                result = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                //result = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+                result = JsonManager.serialize(Map.of("code", "200", "status", "Ok",
+                        "message", "Successfully created subscription", "tx_hash", txHash));
             } catch (JsonProcessingException ex){
                 LogManager.logException(ex, Level.SEVERE);
                 result = "";
             }
         }
         return result;
-    }//success: response, statusCode OR error
+    }//success: code, status, message, tx_hash
 
     protected Properties returnError(int statusCode, String shortErrorMsg, String message){
         Properties result = new Properties();
