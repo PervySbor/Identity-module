@@ -7,7 +7,7 @@
   "SESSION_LENGTH" : "7",
   "JWT_LIFE_MINUTES" : "60",
   "MAX_SESSIONS_AMOUNT" : "5",
-  "KAFKA_BROKERS": ["172.20.98.210:9092"],
+  "KAFKA_BROKERS": ["localhost:9092"],
   "LOG_TOPIC": "logs_topic",
   "LOG_KEY": "key_1",
   "LOG_PARTITION_NUM": "0",

@@ -11,8 +11,8 @@ public class ConsumerWorker implements Runnable{
     private String responseKey;
     private int partition;
 
-    public ConsumerWorker(ServletContext context, String json){
-        authService = (AuthorisationService) context.getAttribute("AuthorizationService");
+    public ConsumerWorker(AuthorisationService authService, String json){
+        this.authService = authService;
         this.json = json;
         topicToRespondTo = ConfigReader.getStringValue("SUBSCRIPTION_RESPONSE_TOPIC");
         responseKey = ConfigReader.getStringValue("SUB_RESPONSE_KEY");

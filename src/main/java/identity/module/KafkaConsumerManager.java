@@ -20,12 +20,12 @@ public class KafkaConsumerManager implements Runnable{
 
     private final ExecutorService ex;
     private final KafkaConsumer<String, String> consumer;
-    private final ServletContext context;
+    private final AuthorisationService authService;
 
 
-    public KafkaConsumerManager(int maxAmtOfThreads, String bootServers, String clientId, String consumerGroupName, List<String> topics, ServletContext context){
+    public KafkaConsumerManager(int maxAmtOfThreads, String bootServers, String clientId, String consumerGroupName, List<String> topics, AuthorisationService authService){
         ex = Executors.newFixedThreadPool(maxAmtOfThreads);
-        this.context = context;
+        this.authService = authService;
 
         Properties props = new Properties();
         props.setProperty("bootstrap.servers", bootServers);
@@ -45,7 +45,7 @@ public class KafkaConsumerManager implements Runnable{
             if(!records.isEmpty()) {
                 for (ConsumerRecord<String, String> record : records) {
                     //{ "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
-                    ConsumerWorker workerRunnable = new ConsumerWorker(context, record.value());
+                    ConsumerWorker workerRunnable = new ConsumerWorker(this.authService, record.value());
                     ex.execute(workerRunnable);
                 }
                 consumer.commitAsync();

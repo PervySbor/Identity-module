@@ -173,7 +173,7 @@ public class AuthorisationService {
                 result.setProperty("jwt", jwt);
             }
         } catch (ParsingUserRequestException | FailedToHashException | JsonProcessingException |
-                 NoSuchAlgorithmException | InvalidKeyException e) {
+                 NoSuchAlgorithmException | InvalidKeyException | RuntimeException e) {
             LogManager.logException(e, Level.SEVERE);
             try {
                 String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
@@ -186,7 +186,7 @@ public class AuthorisationService {
         return result;
     }//success: jwt, statusCode OR error
 
-    protected String createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "subscription_type": "TRIAL"}
+    protected String createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "tx_hash": "001", "subscription_type": "TRIAL"}
         String result;
         try {
             List<String> values = JsonManager.unwrapPairs(List.of("session_id", "subscription_type"), json);

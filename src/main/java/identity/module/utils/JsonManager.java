@@ -42,9 +42,9 @@ public class JsonManager {
         return result;
     }
 
-    public static String getResponseMessage(int statusCode, String error, String message)
+    public static String getResponseMessage(int statusCode, String statusText, String message)
             throws JsonProcessingException {
-        Response response = new Response(statusCode, error, message);
+        Response response = new Response(statusCode, statusText, message);
 
         return mapper.writeValueAsString(response);
     }

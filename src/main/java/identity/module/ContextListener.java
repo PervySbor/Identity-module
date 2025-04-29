@@ -18,8 +18,9 @@ public class ContextListener implements ServletContextListener {
 
         ServletContext ctx = ev.getServletContext();
         ExecutorService kafkaExecutor = Executors.newSingleThreadExecutor();
+        AuthorisationService authService = new AuthorisationService();
 
-        ctx.setAttribute("AuthorisationService", new AuthorisationService());
+        ctx.setAttribute("AuthorisationService", authService);
         ctx.setAttribute("kafkaExecutor", kafkaExecutor);
 
         List<String> bootServers = ConfigReader.getListValue("KAFKA_BROKERS");
@@ -33,7 +34,7 @@ public class ContextListener implements ServletContextListener {
         List<String> topicsToRead = ConfigReader.getListValue("CREATE_SUB_TOPICS");
 
         KafkaConsumerManager consumerManager =
-                new KafkaConsumerManager(maxAmtOfThreads, bootServersString, clientId + "-consumer", consumerGroupName, topicsToRead, ctx);
+                new KafkaConsumerManager(maxAmtOfThreads, bootServersString, clientId + "-consumer", consumerGroupName, topicsToRead, authService);
 
         kafkaExecutor.execute(consumerManager);
 
