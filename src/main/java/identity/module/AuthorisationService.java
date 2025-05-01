@@ -235,8 +235,8 @@ public class AuthorisationService {
             LogManager.logException(e, Level.SEVERE);
             try {
                 //result = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
-                result = JsonManager.serialize(Map.of("code", "200", "status", "Ok",
-                        "message", "Successfully created subscription", "tx_hash", txHash));
+                result = JsonManager.serialize(Map.of("code", "500", "status", "Internal Server Error",
+                        "message", "Encountered exception on server: " +  e.getMessage(), "tx_hash", txHash));
             } catch (JsonProcessingException ex){
                 LogManager.logException(ex, Level.SEVERE);
                 result = "";

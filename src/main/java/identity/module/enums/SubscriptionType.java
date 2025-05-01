@@ -8,7 +8,7 @@ public enum SubscriptionType {
     WEEK(7),
     MONTH(30),
     YEAR(365),
-    ETERNITY(Integer.MAX_VALUE);
+    ETERNITY(36500);
 
     SubscriptionType(Integer length){
         this.length = length;
