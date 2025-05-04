@@ -1,7 +1,9 @@
 package identity.module.utils;
 
 import identity.module.KafkaProducerManager;
+import identity.module.enums.LogType;
 import identity.module.models.LogMessage;
+import identity.module.models.LogMessageWrapper;
 import identity.module.utils.config.ConfigReader;
 
 import java.sql.Timestamp;
@@ -38,9 +40,10 @@ public class LogManager {
             String message = element.toString();
             logMessage.addTraceElement(message);
         }
+        LogMessageWrapper wrappedLogMessage = new LogMessageWrapper(logMessage, LogType.ERROR);
 
         try {
-            jsonLogMessage = JsonManager.serialize(logMessage);
+            jsonLogMessage = JsonManager.serialize(wrappedLogMessage);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e){
             logger.log(Level.SEVERE, "Failed to serialize LogMessage: ", e);
         }
