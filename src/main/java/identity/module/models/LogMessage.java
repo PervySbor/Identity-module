@@ -18,8 +18,8 @@ public class LogMessage {
 
     private List<String> trace;
 
-    public LogMessage(String message, Timestamp timestamp, Level level){
-        this.sender = System.getenv("CONTAINER_NAME");
+    public LogMessage(String message, String sender, Timestamp timestamp, Level level){
+        this.sender = sender;
         this.message = message;
         this.timestamp = timestamp;
         this.level = level.toString();

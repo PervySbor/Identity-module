@@ -16,6 +16,7 @@ public class LogManager {
     private static final String logTopicName;
     private static final String key;
     private static final int partitionNumber;
+    private static final String containerName;
 
      static {
         ConsoleHandler handler = new ConsoleHandler();
@@ -25,6 +26,7 @@ public class LogManager {
         logTopicName = ConfigReader.getStringValue("LOG_TOPIC");
         key = ConfigReader.getStringValue("LOG_KEY");
         partitionNumber = Integer.parseInt(ConfigReader.getStringValue("LOG_PARTITION_NUM"));
+         containerName = ConfigReader.getStringValue("CONTAINER_NAME");
     }
 
     public static String logException(Exception exception, Level level){
@@ -34,7 +36,7 @@ public class LogManager {
         logger.log(Level.INFO, "Currently logging exception: ", exception);
 
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        LogMessage logMessage = new LogMessage(exception.getMessage(), timestamp, level);
+        LogMessage logMessage = new LogMessage(exception.getMessage(), containerName, timestamp, level);
 
         for(StackTraceElement element : elements){
             String message = element.toString();
