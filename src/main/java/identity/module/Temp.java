@@ -22,7 +22,7 @@ public class Temp {
         Host host = tomcat.getHost();
         String webAppLocation = new File("src/main/webapp/").getAbsolutePath();
 
-        Context ctx = tomcat.addWebapp(host, "/myApp", webAppLocation);
+        Context ctx = tomcat.addWebapp(host, "/identity", webAppLocation);
 
         File classesDir = new File("target/classes");
         WebResourceRoot resources = new StandardRoot(ctx);

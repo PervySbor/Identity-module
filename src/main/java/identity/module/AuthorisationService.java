@@ -159,7 +159,7 @@ public class AuthorisationService {
     }//success: response, statusCode OR error
 
 
-    protected Properties refresh(String json){ //required json: { "refresh_token": "9bc17b5d-fcae-4c4f-9fab-09d82d64db4e"} //refresh token is not hashed
+    protected Properties refresh(String json){ //required json: { "refresh": "9bc17b5d-fcae-4c4f-9fab-09d82d64db4e"} //refresh token is not hashed
         Properties result = new Properties();
         try{
             String refreshToken = JsonManager.unwrapPairs(List.of("refresh"), json).getFirst();

@@ -33,7 +33,8 @@ public class KafkaProducerManager {
         }
     }
 
-
+//TODO
+// add IllegalStateException handling to .send() method usages
     public static void send(String topic, Integer partition, String key, String value) {
         if (producer != null) {
             producer.send(new ProducerRecord<>(topic, partition, key, value));
