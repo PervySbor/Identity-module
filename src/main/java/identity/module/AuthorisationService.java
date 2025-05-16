@@ -42,14 +42,16 @@ public class AuthorisationService {
 
             user = this.repository.getUserByLogin(login);
             if(user == null){
-                String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
-                result.setProperty("error", error);
+                //String error = JsonManager.getResponseMessage(404, "Not found", "User with this login doesn't exist");
+                String message = "User with this login doesn't exist";
+                result.setProperty("message", message);
                 result.setProperty("statusCode", "404");
             } else {
                 //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
                 if(!hashedPassword.equals(user.getPasswordHash())) {
-                    String error = JsonManager.getResponseMessage(403, "Unauthorized", "Incorrect password");
-                    result.setProperty("error", error);
+//                    String error = JsonManager.getResponseMessage(403, "Unauthorized", "Incorrect password");
+                    String message = "Incorrect password";
+                    result.setProperty("message", message);
                     result.setProperty("statusCode", "403");
                 } else {
                     String refreshToken = this.sessionManager.generateNewRefreshToken();
@@ -64,16 +66,13 @@ public class AuthorisationService {
                  JsonProcessingException | NoSuchAlgorithmException |
                  InvalidKeyException | UserNotFoundException e){
             LogManager.logException(e, Level.SEVERE);
-            try {
-                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
-                result.setProperty("error", error);
-                result.setProperty("statusCode", "409");
-            } catch (JsonProcessingException ex){
-                LogManager.logException(ex, Level.SEVERE);
-            }
+//                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
+            String message = "Login is already taken";
+            result.setProperty("message", message);
+            result.setProperty("statusCode", "409");
         }
         return result;
-    }//success: refresh, jwt, statusCode OR error
+    }//success: refresh, jwt, statusCode OR message
 
     //UPDATE NEEDED: will fetch user_ip from HttpRequest in Servlet and pass it here as an argument
     //can be used both for user and admin registration
@@ -90,8 +89,9 @@ public class AuthorisationService {
 
             loginTaken = (this.repository).isLoginTaken(login);
             if(loginTaken){
-                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
-                result.setProperty("error", error);
+//                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
+                String message = "Login is already taken";
+                result.setProperty("message", message);
                 result.setProperty("statusCode", "409");
             } else {
                 //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
@@ -108,16 +108,13 @@ public class AuthorisationService {
                  FailedToHashException | NoSuchAlgorithmException | InvalidKeyException | UserNotFoundException |
                  IncorrectRolesType e){
             LogManager.logException(e, Level.SEVERE);
-            try {
-                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
-                result.setProperty("error", error);
-                result.setProperty("statusCode", "500");
-            } catch (JsonProcessingException ex){
-                LogManager.logException(ex, Level.SEVERE);
-            }
+                //String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+            String message = "Encountered exception on server: " +  e.getMessage();
+            result.setProperty("message", message);
+            result.setProperty("statusCode", "500");
         }
         return result;
-    }//success: refresh, jwt, statusCode OR error
+    }//success: refresh, jwt, statusCode OR message
 
 
     protected Properties registerAdmin(String jsonRequest) { //required json: { "login": "<login>", "password": "<hashed_password>"}
@@ -133,8 +130,9 @@ public class AuthorisationService {
 
             loginTaken = (this.repository).isLoginTaken(login);
             if(loginTaken){
-                String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
-                result.setProperty("error", error);
+                //String error = JsonManager.getResponseMessage(409, "Conflict", "Login is already taken");
+                String message = "Login is already taken";
+                result.setProperty("message", message);
                 result.setProperty("statusCode", "409");
             } else {
                 //hashedPassword = identity.module.utils.SecurityManager.hashString(password);
@@ -147,16 +145,13 @@ public class AuthorisationService {
         } catch (ParsingUserRequestException | NonUniqueUserException | JsonProcessingException |
                  IncorrectRolesType e){
             LogManager.logException(e, Level.SEVERE);
-            try {
-                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
-                result.setProperty("error", error);
-                result.setProperty("statusCode", "500");
-            } catch (JsonProcessingException ex){
-                LogManager.logException(ex, Level.SEVERE);
-            }
+                //String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+            String message = "Encountered exception on server: " +  e.getMessage();
+            result.setProperty("message", message);
+            result.setProperty("statusCode", "500");
         }
         return result;
-    }//success: response, statusCode OR error
+    }//success: response, statusCode OR message
 
 
     protected Properties refresh(String json){ //required json: { "refresh": "9bc17b5d-fcae-4c4f-9fab-09d82d64db4e"} //refresh token is not hashed
@@ -166,8 +161,9 @@ public class AuthorisationService {
             String hashedRefreshToken = SecurityManager.hashString(refreshToken);
             Session session = repository.getRelevantSession(hashedRefreshToken);
             if (session == null){
-                String error = JsonManager.getResponseMessage(404, "Not found", "Session with this refresh token doesn't exist");
-                result.setProperty("error", error);
+                //String error = JsonManager.getResponseMessage(404, "Not found", "Session with this refresh token doesn't exist");
+                String message = "Session with this refresh token doesn't exist";
+                result.setProperty("message", message);
                 result.setProperty("statusCode", "404");
             } else {
                 String jwt = sessionManager.createJWT(session.getUser().getRole(), session.getSessionId());
@@ -176,16 +172,13 @@ public class AuthorisationService {
         } catch (ParsingUserRequestException | FailedToHashException | JsonProcessingException |
                  NoSuchAlgorithmException | InvalidKeyException | RuntimeException e) {
             LogManager.logException(e, Level.SEVERE);
-            try {
-                String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
-                result.setProperty("error", error);
-                result.setProperty("statusCode", "500");
-            } catch (JsonProcessingException ex){
-                LogManager.logException(ex, Level.SEVERE);
-            }
+                //String error = JsonManager.getResponseMessage(500, "Internal Server Error", "Encountered exception on server: " +  e.getMessage());
+            String message = "Encountered exception on server: " +  e.getMessage();
+            result.setProperty("message", message);
+            result.setProperty("statusCode", "500");
         }
         return result;
-    }//success: jwt, statusCode OR error
+    }//success: jwt, statusCode OR message
 
     protected String createSubscription(String json){  //required json: { "session_id": "a91afb61-41c8-4972-bde5-538f9174037a", "tx_hash": "001", "subscription_type": "TRIAL"}
         String result;

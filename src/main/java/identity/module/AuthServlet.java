@@ -36,12 +36,12 @@ public class AuthServlet extends HttpServlet {
     public void doPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse){
         String path = httpRequest.getServletPath();
         switch(path){
-            case "/user/login": case "/admin/login": pathHandler(httpRequest, httpResponse, authService::login, List.of("refresh", "jwt", "error")); break;
-            case "/user/register": pathHandler(httpRequest, httpResponse, authService::registerUser, List.of("jwt", "refresh", "error")); break;
-            case "/admin/register": pathHandler(httpRequest, httpResponse, authService::registerAdmin, List.of("response", "error")); break;
-            case "/refresh": pathHandler(httpRequest, httpResponse, authService::refresh, List.of("jwt", "error")); break;
-            case "/ping": returnError(httpResponse, 418, "I'm a teapot", "Don't bother me"); break;
-            default: returnError(httpResponse, 404, "Not found", "Incorrect path"); break;
+            case "/user/login": case "/admin/login": pathHandler(httpRequest, httpResponse, authService::login, List.of("refresh", "jwt", "message")); break;
+            case "/user/register": pathHandler(httpRequest, httpResponse, authService::registerUser, List.of("jwt", "refresh", "message")); break;
+            case "/admin/register": pathHandler(httpRequest, httpResponse, authService::registerAdmin, List.of("response", "message")); break;
+            case "/refresh": pathHandler(httpRequest, httpResponse, authService::refresh, List.of("jwt", "message")); break;
+            case "/ping": returnError(httpResponse, 418, "Don't bother me"); break;
+            default: returnError(httpResponse, 404, "Incorrect path"); break;
 
         }
     }
@@ -51,7 +51,7 @@ public class AuthServlet extends HttpServlet {
         Properties result;
         Map<String,String> body = new HashMap<>();
         if(!httpRequest.getHeader("Content-Type").equals("application/json")){
-            returnError(httpResponse,422, "Unprocessable Content","Incorrect content type");
+            returnError(httpResponse,422, "Incorrect content type");
         }else {
             try{
                 PrintWriter writer = httpResponse.getWriter();
@@ -80,9 +80,9 @@ public class AuthServlet extends HttpServlet {
         Map<String,String> body = new HashMap<>();
         String userIp = httpRequest.getHeader("X-Forwarded-For");
         if(!httpRequest.getHeader("Content-Type").equals("application/json")){
-            returnError(httpResponse,422, "Unprocessable Content","Incorrect content type");
+            returnError(httpResponse,422, "Incorrect content type");
         } else if(userIp == null){
-            returnError(httpResponse,422, "Unprocessable Content","Failed to fetch user ip");
+            returnError(httpResponse,422, "Failed to fetch user ip");
         } else {
             try{
                 PrintWriter writer = httpResponse.getWriter();
@@ -106,13 +106,13 @@ public class AuthServlet extends HttpServlet {
     }
 
 
-    private void returnError(HttpServletResponse httpResponse, int statusCode, String shortErrorMsg, String message){
+    private void returnError(HttpServletResponse httpResponse, int statusCode, String message){
         httpResponse.setHeader("Content-Type","application/json");
-        Properties result = authService.returnError(statusCode, shortErrorMsg, message);
+        //Properties result = authService.returnError(statusCode, shortErrorMsg, message);
         try {
             PrintWriter writer = httpResponse.getWriter();
             Map<String, String> toBeSerialized = new HashMap<String,String>();
-            toBeSerialized.put("error", result.getProperty("error"));
+            toBeSerialized.put("message", message);
             String serializedError = JsonManager.serialize(toBeSerialized);
             writer.write(serializedError);
             httpResponse.setStatus(statusCode);
